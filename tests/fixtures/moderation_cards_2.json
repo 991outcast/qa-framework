@@ -1,0 +1,1496 @@
+[
+ {
+  "id": 1,
+  "case": "Кальян в сборе",
+  "card": {
+   "name": "Кальян на 2 персоны, высота 60 см",
+   "seller": "Дым Мастер 2220001",
+   "category": "Кальян",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Кальян на 2 персоны, высота 60 см",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "В комплекте чаша, шахта, колба и силиконовый шланг. Собирается за минуту.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Кальян",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Кальяны"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 2,
+  "case": "Одноразовая электронная сигарета",
+  "card": {
+   "name": "Электронная сигарета одноразовая, 1500 затяжек",
+   "seller": "Пар Шоп 2220002",
+   "category": "Аксессуары для курения",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Электронная сигарета одноразовая, 1500 затяжек",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Одноразовая электронная сигарета со вкусом манго, аккумулятор 550 мА·ч.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Аксессуары для курения",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "никотин"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 3,
+  "case": "Марганцовка без процента",
+  "card": {
+   "name": "Перманганат калия, 100 г",
+   "seller": "Химия Сад 2220003",
+   "category": "Средство для сада",
+   "group": "Дача и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Перманганат калия, 100 г",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Кристаллический порошок для обработки семян и почвы.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Средство для сада",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Марганцовка"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 4,
+  "case": "Фейерверк не в категории пиротехники",
+  "card": {
+   "name": "Фейерверк «Праздничный», 25 залпов",
+   "seller": "Праздник Тут 2220004",
+   "category": "Товары для праздника",
+   "group": "Хобби и творчество",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Фейерверк «Праздничный», 25 залпов",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Батарея салютов на 25 залпов, высота подъёма 30 м.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Товары для праздника",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Пиротехнический товар в неверной категории",
+     "rule": "Пиротехника"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 5,
+  "case": "Газ для зажигалок не в разрешённой категории",
+  "card": {
+   "name": "Газ для заправки зажигалок 400 мл",
+   "seller": "Огонёк 2220005",
+   "category": "Аксессуары для туризма и путешествий",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Газ для заправки зажигалок 400 мл",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Очищенный бутан для заправки газовых зажигалок, 5 переходников.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Аксессуары для туризма и путешествий",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Пожароопасный товар в неверной категории",
+     "rule": "Легковоспламеняющиеся"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 6,
+  "case": "Семаглутид в категории БАД",
+  "card": {
+   "name": "Семаглутид раствор, шприц-ручка 1 мл",
+   "seller": "Фарма Лайф 2220006",
+   "category": "БАД",
+   "group": "Аптека",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Семаглутид раствор, шприц-ручка 1 мл",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Раствор семаглутида для подкожного введения, для снижения веса.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: БАД",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Лекарственное средство в неверной категории",
+     "rule": "Лекарственные средства"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 7,
+  "case": "Конфеты с ликёром без признака «18»",
+  "card": {
+   "name": "Конфеты шоколадные с вишней в ликёре, 200 г",
+   "seller": "Сладкий Мир 2220007",
+   "category": "Конфеты",
+   "group": "Продукты питания",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Конфеты шоколадные с вишней в ликёре, 200 г",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Шоколадные конфеты с целой вишней и вишнёвым ликёром внутри. Состав: шоколад, вишня, ликёр (алкоголь 4%).",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Признак 18+",
+     "status": "Не проверяется",
+     "value": "Нет",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Конфеты",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "В карточке товара не указан признак «18»",
+     "rule": "Конфеты с алкоголем"
+    }
+   ],
+   "any_attribute": true
+  }
+ },
+ {
+  "id": 8,
+  "case": "Электрошокер",
+  "card": {
+   "name": "Электрошокер карманный с фонариком",
+   "seller": "Защита Плюс 2220008",
+   "category": "Средство самообороны",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Электрошокер карманный с фонариком",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Мощный электрошокер для защиты, встроенный фонарик, зарядка от USB.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Средство самообороны",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Электрошокеры"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 9,
+  "case": "Капкан",
+  "card": {
+   "name": "Капкан для охоты на лису №2",
+   "seller": "Охотник 2220009",
+   "category": "Товары для охоты",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Капкан для охоты на лису №2",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Стальной капкан с пружинным механизмом, размер №2.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Товары для охоты",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Капканы"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 10,
+  "case": "Хештеги подряд в аннотации",
+  "card": {
+   "name": "Рюкзак школьный для девочки",
+   "seller": "Школа Плюс 2220010",
+   "category": "Рюкзак",
+   "group": "Детские товары",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Рюкзак школьный для девочки",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Анатомическая спинка, 2 отделения. #рюкзак #рюкзакшкольный #рюкзакдлядевочки #портфель #ранец #сумкадляшколы",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Рюкзак",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Аннотация",
+     "resolution": "В аннотации указаны ключевые слова",
+     "rule": "ключевые слова"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 11,
+  "case": "Деньги за отзыв",
+  "card": {
+   "name": "Набор кистей для макияжа, 12 шт",
+   "seller": "Бьюти Бокс 2220011",
+   "category": "Кисть для макияжа",
+   "group": "Красота и гигиена",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Набор кистей для макияжа, 12 шт",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Мягкий ворс, чехол в комплекте. Оставьте отзыв с фото — вернём 300 ₽ на карту!",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Кисть для макияжа",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Информация в карточке нарушает принципы честной конкуренции",
+     "rule": "Акции"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 12,
+  "case": "Упоминание Wildberries",
+  "card": {
+   "name": "Плед флисовый 150х200",
+   "seller": "Уют Текстиль 2220012",
+   "category": "Плед",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Плед флисовый 150х200",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Мягкий флис, не линяет. Эту модель также можно найти у нас на Wildberries.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Плед",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Информация в карточке нарушает принципы честной конкуренции",
+     "rule": "маркетплейс"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 13,
+  "case": "Название и аннотация противоречат (цвет)",
+  "card": {
+   "name": "Футболка женская красная, хлопок",
+   "seller": "Мода Тут 2220013",
+   "category": "Футболка",
+   "group": "Одежда",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Футболка женская красная, хлопок",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Свободный крой, хлопок 100%. Цвет: синий.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Футболка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Информация в карточке товара противоречит друг другу",
+     "rule": "противоречит"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 14,
+  "case": "Ловушка: воздушные шары в ассортименте",
+  "card": {
+   "name": "Воздушные шары 30 см, 50 шт",
+   "seller": "Праздник Тут 2220014",
+   "category": "Воздушный шар",
+   "group": "Хобби и творчество",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Воздушные шары 30 см, 50 шт",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Латексные шары для праздника. Цвета в ассортименте.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "ассортименте"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Воздушный шар",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 15,
+  "case": "Ловушка: сувенирный нож в «Оружие сувенирное»",
+  "card": {
+   "name": "Нож сувенирный декоративный на подставке",
+   "seller": "Сувенир Мастер 2220015",
+   "category": "Оружие сувенирное",
+   "group": "Хобби и творчество",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Нож сувенирный декоративный на подставке",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Декоративный нож для интерьера, клинок не заточен, деревянная подставка.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "Нож"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Оружие сувенирное",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 16,
+  "case": "Ловушка: энергетик в правильной категории",
+  "card": {
+   "name": "Энергетический напиток Burn 0,449 л, 12 шт",
+   "seller": "Напитки Опт 2220016",
+   "category": "Энергетический напиток",
+   "group": "Продукты питания",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Burn",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Энергетический напиток Burn 0,449 л, 12 шт",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Тонизирующий напиток с таурином и кофеином. 12 банок.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Энергетический напиток",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 17,
+  "case": "Ловушка: электронный термометр",
+  "card": {
+   "name": "Термометр медицинский электронный",
+   "seller": "Медтехника Дом 2220017",
+   "category": "Термометр медицинский",
+   "group": "Аптека",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Термометр медицинский электронный",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Электронный термометр с гибким наконечником, измерение за 10 секунд.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Вид термометра",
+     "status": "Не проверяется",
+     "value": "Электронный",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Термометр медицинский",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 18,
+  "case": "Ловушка: гуманный капкан-живоловка",
+  "card": {
+   "name": "Живоловка для кротов и крыс, гуманный капкан",
+   "seller": "Сад Мастер 2220018",
+   "category": "Товары для сада",
+   "group": "Дача и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Живоловка для кротов и крыс, гуманный капкан",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Гуманный проходной капкан: зверёк остаётся живым, его можно выпустить.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "капкан"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Товары для сада",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 19,
+  "case": "Ловушка: отдельная чаша для кальяна",
+  "card": {
+   "name": "Чаша для кальяна глиняная",
+   "seller": "Дым Мастер 2220019",
+   "category": "Аксессуары для кальяна",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Чаша для кальяна глиняная",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Чаша из глины на 20 г табака. Подходит к большинству шахт.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "кальяна"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Аксессуары для кальяна",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 20,
+  "case": "Ловушка: мухобойка с электрошоком",
+  "card": {
+   "name": "Мухобойка электрическая с аккумулятором",
+   "seller": "Дом Без Мух 2220020",
+   "category": "Мухобойка",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Мухобойка электрическая с аккумулятором",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Мухобойка с электрошоком: ток безопасен для человека, заряд от USB.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "электрошоком"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Мухобойка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ }
+]

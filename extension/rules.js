@@ -75,11 +75,14 @@ class RulesBook {
 
   // Выдержки для модели: «как выполнять задания», подходящие разделы целиком (до budget символов)
   // и названия остальных разделов — это резолюции, модель назовёт нужную
-  excerpts(query, budget = 24000) {
+  // skip(раздел) → true — раздел не нужен этому заданию (правила видео в карточке без видео): не тратить на него место
+  // pin(раздел) → true — раздел нужен всегда (таблица критических брендов, когда проверяется бренд)
+  excerpts(query, budget = 24000, skip = null, pin = null) {
     const chosen = this.sections.filter((s) => CORE_RE.test(s.title)).slice(0, 2);
+    if (pin) chosen.push(...this.sections.filter((s) => pin(s) && !chosen.includes(s)));
     let used = chosen.reduce((a, s) => a + RulesBook.render(s).length, 0);
     for (const [, s] of this.search(query, 30)) {
-      if (chosen.includes(s)) continue;
+      if (chosen.includes(s) || (skip && skip(s))) continue;
       const size = RulesBook.render(s).length;
       if (used + size > budget) continue;
       chosen.push(s);

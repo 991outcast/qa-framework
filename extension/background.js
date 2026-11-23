@@ -1,6 +1,11 @@
 // Последнее задание каждой вкладки и рич-контент к нему — в памяти сессии браузера: панель, открытая позже,
 // сразу их видит. Рич-контент приходит из своего фрейма (rich-content.ozon.ru) и относится к текущей карточке.
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+// Chrome — боковая панель sidePanel, Firefox — sidebar: открываются по нажатию на значок расширения.
+if (chrome.sidePanel) {
+  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+} else if (typeof browser !== 'undefined' && browser.sidebarAction) {
+  chrome.action.onClicked.addListener(() => browser.sidebarAction.toggle());
+}
 
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (!message || !sender.tab) return;

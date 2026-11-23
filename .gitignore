@@ -17,3 +17,7 @@ __pycache__/
 venv/
 .pytest_cache/
 logs/
+
+# сборка расширения для Firefox (python extension/build_firefox.py)
+extension-firefox/
+extension-firefox.zip

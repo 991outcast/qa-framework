@@ -2,35 +2,6 @@
 // по каждому атрибуту с резолюцией и пунктом правил (модель видит все фото карточки) → рамки на карточке
 // вокруг ✓/✗ и нужной причины отклонения. Сама панель и content.js ничего не нажимают.
 
-// ответ текстом (вопрос по правилам, страница без карточки) — тот же текст, что _RULES_PROMPT в openrouter_connector.py
-const PROMPT = 'Ты помогаешь модератору карточек товаров. Тебе даны выдержки из справочника правил площадки и '
-  + 'карточка (или вопрос). Решай ТОЛЬКО по правилам из выдержек; если подходящего запрета нет — атрибут верный '
-  + '(принять). Ответ по-русски, коротко:\n'
-  + '• по каждому атрибуту карточки, где есть нарушение: «ОТКЛОНИТЬ — <атрибут>: <точное название резолюции '
-  + 'или раздела>» и одна строка почему, с цитатой нарушения из карточки;\n'
-  + '• остальные атрибуты — одной строкой «ПРИНЯТЬ: …»;\n'
-  + '• если правило есть только в списке названий разделов, а его текста нет — скажи об этом и что проверить;\n'
-  + '• если данных не хватает (нужно фото) — скажи, что именно посмотреть самому;\n'
-  + '• видео и видеообложку не оценивай — их смотрит человек: напиши «Видео — смотрите сами».\n'
-  + 'Не придумывай правил и резолюций, которых нет в справочнике. На вопрос о правилах — ответь по выдержкам '
-  + 'и назови раздел.';
-
-// карточка модерации: решение по каждому проверяемому атрибуту — JSON
-const CARD_PROMPT = 'Ты помогаешь модератору карточек товаров Ozon. Даны: выдержки из справочника правил, карточка по '
-  + 'атрибутам и фото карточки (ФОТО n — подпись, к какому атрибуту относится). Проверь КАЖДЫЙ атрибут с пометкой '
-  + '«проверить»: прочитай значение целиком, рассмотри каждое его фото (надписи, логотипы маркетплейсов, контакты, '
-  + 'QR-коды, иероглифы, сигареты и алкоголь, шок-контент, символика) и сверь с правилами.\n'
-  + 'Принцип справочника: инструкции построены по принципу «что нельзя» — нет подходящего запрета, атрибут верный.\n'
-  + 'Слова, подсвеченные Ozon, — только подсказка: реши по смыслу (например, «мобил» внутри «автомобильной» — '
-  + 'не бренд Mobil).\n'
-  + 'Резолюцию бери ТОЛЬКО из списка резолюций этого атрибута, точно как написано; если открыт список «Причины '
-  + 'отклонения» на странице — из него. Видео и видеообложку не оценивай: decision «смотрите сами». Рич-контент '
-  + 'без текста и фото (не открыт) — «смотрите сами» и попроси открыть и пролистать.\n'
-  + 'Ответ — только JSON: {"attributes": [{"name": "<название атрибута как в карточке>", "decision": '
-  + '"принять" | "отклонить" | "смотрите сами", "resolution": "<для отклонить — точная резолюция, иначе пусто>", '
-  + '"reason": "<коротко почему, с цитатой из карточки или номером фото>", "section": "<раздел справочника>"}], '
-  + '"summary": "<одна строка итога>"}. Все тексты — по-русски.';
-
 const API = {
   gemini: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
   openrouter: 'https://openrouter.ai/api/v1/chat/completions',
@@ -38,12 +9,6 @@ const API = {
 const DEFAULT_MODEL = { gemini: 'gemini-3.1-flash-lite', openrouter: 'z-ai/glm-5.3-flash' };
 const CARD_CHARS = 12000;          // текста страницы в запрос — не больше
 const MAX_PHOTOS = 60;             // даже «все фото» — не больше стольких
-
-// атрибут на странице → как он называется в справочнике («Применяется к: Атрибут: «…»»)
-const ATTR_ALIASES = {
-  'изображение': ['главное фото'], 'изображения': ['дополнительное фото'], 'rich-контент': ['рич-контент'],
-  'озон.видео': ['озон.видео'], 'озон.видеообложка': ['озон.видеообложка'], 'бренд в одежде и обуви': ['бренд'],
-};
 
 const $ = (id) => document.getElementById(id);
 let settings = {};
@@ -57,40 +22,9 @@ let askTimer = null;
 let inflight = null;
 const answers = new Map();         // задание → ответ (повторно не спрашивать)
 
-const lower = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е').trim();
-
 function setText(el, text, cls) {
   el.textContent = text;
   el.className = cls ? `answer ${cls}` : 'answer';
-}
-
-// резолюции по атрибутам — из разделов справочника, где написано, к какому атрибуту они применяются
-function buildResolutions(b) {
-  const map = new Map();
-  const add = (attr, title) => {
-    const key = lower(attr).replace(/[:\s]*\d+$/, '').trim();
-    if (!map.has(key)) map.set(key, new Set());
-    map.get(key).add(title);
-  };
-  for (const s of b.sections) {
-    const head = s.text.slice(0, 400);
-    const names = [...head.matchAll(/Атрибут\w*\s*[:\-]?\s*[«"]([^»"]{2,40})[»"]/g)].map((m) => m[1]);
-    // «Товар нельзя продавать на Ozon». Яды — резолюция — часть в кавычках
-    const quoted = s.title.match(/^«([^»]+(?:«[^»]*»[^»]*)?)»/);
-    const title = quoted ? quoted[1] : s.title;
-    for (const n of names) add(n, title);
-    if (quoted && !names.length) add('общие недочеты', title);
-  }
-  return map;
-}
-
-function resolutionsFor(title) {
-  const key = lower(title);
-  const out = new Set();
-  for (const name of [key, ...(ATTR_ALIASES[key] || [])]) {
-    for (const r of resolutionsByAttr.get(name) || []) out.add(r);
-  }
-  return [...out];
 }
 
 async function loadSettings() {
@@ -103,7 +37,7 @@ async function loadSettings() {
   $('model').value = settings.model || '';
   $('model').placeholder = DEFAULT_MODEL[provider];
   $('auto').checked = settings.auto !== false;
-  $('budget').value = settings.budget || 24000;
+  $('budget').value = settings.budget || 40000;
   $('photos').value = settings.photos || 'all';
   $('rules-info').textContent = book
     ? `Загружено: ${String(book.source).split(/[\\/]/).pop()} — ${book.sections.length} разделов`
@@ -139,32 +73,6 @@ function cardPhotos(card) {
   return photos.slice(0, MAX_PHOTOS);
 }
 
-function cardText(card, photos) {
-  const lines = [`КАРТОЧКА: ${card.name}`, `Продавец: ${card.seller}`, `Категория: ${card.category}`,
-                 `Группа товаров: ${card.group}`];
-  if (card.badges.length) lines.push(`Плашки: ${card.badges.join(', ')}`);
-  for (const a of card.attributes) {
-    const marks = [a.checkable ? 'проверить' : 'не проверяется', a.changed && 'изменено', a.active && 'открыт сейчас']
-      .filter(Boolean).join(', ');
-    lines.push('', `АТРИБУТ «${a.title}» — ${marks}`);
-    if (!a.checkable) { lines.push(`Значение: ${a.value.slice(0, 300)}`); continue; }
-    if (a.video) { lines.push('Видео — его смотрит человек, не оценивай.'); continue; }
-    if (a.value) lines.push(`Значение: ${a.value}`);
-    if (a.old) lines.push(`Было до изменения: ${a.old}`);
-    const nums = photos.map((p, i) => (p.label.startsWith(`«${a.title}»`) ? i + 1 : 0)).filter(Boolean);
-    if (nums.length) lines.push(`Фото: ${nums.length === 1 ? 'ФОТО ' + nums[0] : `ФОТО ${nums[0]}–${nums[nums.length - 1]}`}`);
-    if (a.highlights.length) lines.push(`Подсвечено Ozon: ${a.highlights.join(', ')}`);
-    const reasons = a.reasons.length ? a.reasons : resolutionsFor(a.title);
-    if (reasons.length) {
-      lines.push((a.reasons.length ? 'Причины отклонения на странице: ' : 'Резолюции этого атрибута: ') + reasons.join(' | '));
-    }
-    if (/rich/i.test(a.title)) {
-      lines.push(rich ? `Текст рич-контента: ${rich.text.slice(0, 4000)}` : 'Рич-контент ещё не открыт — текста и фото нет.');
-    }
-  }
-  return lines.join('\n');
-}
-
 function ozonImage(url) {
   // ir.ozone.ru/s3/<корзина>/<файл> — фото в исходном размере; wc1000 — до 1000 px, мелкие надписи читаются
   return url.replace(/^(https:\/\/ir[^/]*\.ozone\.ru\/s3\/[^/]+\/)(?!wc\d+\/)([^/?#]+\.(?:jpe?g|png|webp))$/i, '$1wc1000/$2');
@@ -183,6 +91,8 @@ async function toDataUrl(url) {
 }
 
 // ---------------- показ
+const queryOf = (t) => (t.card ? cardQuery(t.card, rich) : t.text);
+
 function show(t) {
   task = t;
   $('video-note').hidden = !(t && t.videos);
@@ -203,13 +113,6 @@ function show(t) {
   } else if (!settings.key) {
     setText($('answer'), 'Чтобы ИИ отвечал, впишите ключ API в настройках. Разделы справочника — ниже.', 'muted');
   }
-}
-
-function queryOf(t) {
-  if (!t.card) return t.text;
-  const c = t.card;
-  return [c.name, c.category, c.group, ...c.attributes.filter((a) => a.checkable)
-    .map((a) => `${a.title} ${a.value} ${a.old} ${a.highlights.join(' ')}`), rich ? rich.text : ''].join('\n');
 }
 
 function renderSections(text) {
@@ -236,12 +139,21 @@ function renderSections(text) {
 
 // ---------------- запрос к модели
 async function post(body, provider) {
-  return fetch(API[provider], {
+  const once = () => fetch(API[provider], {
     method: 'POST', signal: controller.signal,
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + settings.key,
                ...(provider === 'openrouter' ? { 'X-Title': 'Moderation helper' } : {}) },
     body: JSON.stringify(body),
   });
+  // связь рвётся («Failed to fetch», 5xx у поставщика модели) — ещё попытка через 2 с, потом ошибка в панели
+  try {
+    const res = await once();
+    if (res.status < 500) return res;
+  } catch (e) {
+    if (e.name === 'AbortError') throw e;
+  }
+  await new Promise((ok) => setTimeout(ok, 2000));
+  return once();
 }
 
 function explain(status, message) {
@@ -271,14 +183,14 @@ async function ask(t, question = '') {
   setText($('answer'), 'Думаю…', 'muted');
   $('answer-meta').textContent = '';
   $('verdicts').replaceChildren();
-  const budget = Number(settings.budget) || 24000;
+  const budget = Number(settings.budget) || 40000;
   const started = performance.now();
   try {
     let body;
     let photos = [];
     if (t.card && !question) {
       photos = cardPhotos(t.card);
-      const content = [{ type: 'text', text: book.excerpts(queryOf(t), budget) + '\n\n' + cardText(t.card, photos) }];
+      const content = [{ type: 'text', text: book.excerpts(queryOf(t), budget, excerptSkip(t.card), excerptPin(t.card)) +'\n\n' + cardText(t.card, photos, resolutionsByAttr, rich) }];
       const loaded = await Promise.all(photos.map((p) => toDataUrl(p.url).catch(() => null)));
       loaded.forEach((url, i) => {
         content.push({ type: 'text', text: `ФОТО ${i + 1} — ${photos[i].label}` + (url ? '' : ' (не загрузилось)') });
@@ -322,21 +234,6 @@ async function ask(t, question = '') {
     setText($('answer'), e.status ? explain(e.status, e.message) : 'Нет связи с сервисом модели: ' + e.message, 'error');
   } finally {
     if (inflight === key) inflight = null;
-  }
-}
-
-function parseVerdicts(content) {
-  const m = content.match(/\{[\s\S]*\}/);
-  if (!m) return null;
-  try {
-    const data = JSON.parse(m[0]);
-    const list = (data.attributes || []).map((a) => ({
-      attribute: String(a.name || ''), decision: lower(a.decision), resolution: String(a.resolution || ''),
-      reason: String(a.reason || ''), section: String(a.section || ''),
-    })).filter((a) => a.attribute);
-    return { list, summary: String(data.summary || '') };
-  } catch (e) {
-    return null;
   }
 }
 
@@ -408,7 +305,7 @@ $('rules-file').addEventListener('change', async (event) => {
 $('save').addEventListener('click', async () => {
   await chrome.storage.local.set({
     provider: $('provider').value, key: $('key').value.trim(), model: $('model').value.trim(),
-    auto: $('auto').checked, budget: Number($('budget').value) || 24000, photos: $('photos').value,
+    auto: $('auto').checked, budget: Number($('budget').value) || 40000, photos: $('photos').value,
   });
   $('saved').textContent = 'Сохранено';
   setTimeout(() => { $('saved').textContent = ''; }, 1500);
@@ -426,4 +323,25 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
 chrome.tabs.onActivated.addListener(loadTask);
 chrome.tabs.onUpdated.addListener((id, info) => { if (id === tabId && info.status === 'complete') loadTask(); });
 
+// Firefox выдаёт доступ к сайтам не при установке, а по просьбе — кнопка в панели (в Chrome доступ уже есть)
+const ORIGINS = { origins: chrome.runtime.getManifest().host_permissions || [] };
+async function checkAccess() {
+  try {
+    $('perm').hidden = await chrome.permissions.contains(ORIGINS);
+  } catch (e) {
+    $('perm').hidden = true;
+  }
+}
+$('perm-btn').addEventListener('click', async () => {
+  try {
+    if (await chrome.permissions.request(ORIGINS)) {
+      $('perm').hidden = true;
+      $('status').textContent = 'Доступ выдан — обновите вкладку с заданием (F5).';
+    }
+  } catch (e) {
+    $('status').textContent = 'Доступ не выдан: ' + e.message;
+  }
+});
+
+checkAccess();
 loadSettings().then(loadTask);

@@ -98,7 +98,8 @@ CHROME_STUB = """
     storage: { local: area('local'), session: area('session'), onChanged: { addListener: (f) => listeners.push(f) } },
     tabs: { query: async () => [{ id: 1 }], onActivated: ev(), onUpdated: ev(),
             sendMessage: async (id, m) => { (window.__hints = window.__hints || []).push(m); } },
-    runtime: { onMessage: ev() },
+    runtime: { onMessage: ev(), getManifest: () => ({ host_permissions: ['https://*.ozon.ru/*'] }) },
+    permissions: { contains: async () => %(access)s, request: async () => true },
   };
 })();
 """
@@ -116,7 +117,7 @@ def test_side_panel_shows_sections_at_once_and_the_model_answer():
         async with async_playwright() as p:
             browser = await p.chromium.launch(**launch_options())
             page = await browser.new_page()
-            await page.add_init_script(CHROME_STUB % {"local": json.dumps(local, ensure_ascii=False),
+            await page.add_init_script(CHROME_STUB % {"access": "true", "local": json.dumps(local, ensure_ascii=False),
                                                       "session": json.dumps(session, ensure_ascii=False)})
             cors = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*",
                     "Access-Control-Allow-Methods": "POST, OPTIONS"}
@@ -251,7 +252,7 @@ def test_side_panel_checks_every_attribute_with_photos_and_rules():
         async with async_playwright() as p:
             browser = await p.chromium.launch(**launch_options())
             page = await browser.new_page()
-            await page.add_init_script(CHROME_STUB % {"local": json.dumps(local, ensure_ascii=False),
+            await page.add_init_script(CHROME_STUB % {"access": "true", "local": json.dumps(local, ensure_ascii=False),
                                                       "session": json.dumps(session, ensure_ascii=False)})
             cors = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*",
                     "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}
@@ -291,3 +292,100 @@ def test_side_panel_checks_every_attribute_with_photos_and_rules():
     assert all("/wc1000/" in u for u in photos) and asked[0]["response_format"] == {"type": "json_object"}
     assert rows[1].startswith("ОТКЛОНИТЬ — Изображение") and "сигарета" in rows[1]
     assert hints[0]["key"] == "card-1" and hints[0]["hints"][1]["decision"] == "отклонить"
+
+
+def test_firefox_build_uses_sidebar_and_the_same_code(tmp_path):
+    """Firefox: тот же код, другой манифест — боковая панель sidebar_action, фоновый скрипт background.scripts,
+    id дополнения; доступ к сайтам и содержимое (скрипты, разрешения, версия) — как у Chrome."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_firefox", EXT / "build_firefox.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    out = module.build(tmp_path / "extension-firefox")
+    ff = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+    chrome = json.loads((EXT / "manifest.json").read_text(encoding="utf-8"))
+    assert ff["background"] == {"scripts": ["background.js"]} and ff["sidebar_action"]["default_panel"] == "sidepanel.html"
+    assert ff["browser_specific_settings"]["gecko"]["id"] and "sidePanel" not in ff["permissions"]
+    for key in ("version", "host_permissions", "content_scripts"):
+        assert ff[key] == chrome[key], key
+    names = {f.name for f in out.iterdir()}
+    assert {"content.js", "rules.js", "sidepanel.html", "sidepanel.js", "sidepanel.css", "background.js"} <= names
+    assert "build_firefox.py" not in names and "manifest.firefox.json" not in names
+    assert (tmp_path / "extension-firefox.zip").exists()
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")
+def test_background_opens_firefox_sidebar_on_icon_click(tmp_path):
+    """Фоновый скрипт без sidePanel (Firefox): значок расширения открывает и закрывает sidebar."""
+    script = tmp_path / "bg.js"
+    lines = [
+        "let clicked = null; let toggled = 0;",
+        "const ev = () => ({ addListener: () => {} });",
+        "globalThis.browser = { sidebarAction: { toggle: () => { toggled++; } } };",
+        "globalThis.chrome = { action: { onClicked: { addListener: (f) => { clicked = f; } } },",
+        "  runtime: { onMessage: ev() }, tabs: { onRemoved: ev() }, storage: { session: {} } };",
+        "require(" + json.dumps(str(EXT / "background.js")) + ");",
+        "clicked(); console.log(toggled);",
+    ]
+    script.write_text(chr(10).join(lines), encoding="utf-8")
+    out = subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8", check=True)
+    assert out.stdout.strip() == "1"
+
+
+def test_side_panel_asks_for_site_access_in_firefox():
+    """Firefox выдаёт доступ к сайтам по просьбе: панель показывает кнопку «Разрешить доступ»."""
+    async def scenario():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(**launch_options())
+            page = await browser.new_page()
+            await page.add_init_script(CHROME_STUB % {"access": "false", "local": "{}", "session": "{}"})
+            await page.goto((EXT / "sidepanel.html").as_uri())
+            await page.wait_for_function("!document.querySelector('#perm').hidden")
+            await page.click("#perm-btn")
+            await page.wait_for_function("document.querySelector('#perm').hidden")
+            status = await page.locator("#status").inner_text()
+            await browser.close()
+            return status
+
+    assert "Доступ выдан" in run(scenario())
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")
+def test_reference_cards_and_scoring(tmp_path):
+    """Эталонные карточки (tests/fixtures/moderation_cards.json, вымышленные): у каждой ожидаемый атрибут есть
+    среди проверяемых; подсчёт засчитывает только точный ответ — ложное отклонение ловушки и не та резолюция
+    не засчитываются. Запрос: правила видео не берутся в карточку без видео, таблица критических брендов —
+    всегда, когда проверяется бренд."""
+    cards = json.loads((Path(__file__).resolve().parent / "fixtures" / "moderation_cards.json").read_text(encoding="utf-8"))
+    assert len(cards) == 20 and sum(1 for c in cards if not c["expect"]["reject"]) == 6
+    for c in cards:
+        checkable = {a["title"] for a in c["card"]["attributes"] if a["checkable"]}
+        assert all(c["expect"]["any_attribute"] or e["attribute"] in checkable for e in c["expect"]["reject"]), c["id"]
+    rules = _data()
+    rules["sections"] += [
+        {"path": [], "title": "Таблица критических брендов", "text": "Samsung Самсунг Philips Филипс"},
+        {"path": [], "title": "На видео есть рекламная информация", "text": "контакты телефоны ссылки " * 40}]
+    data = tmp_path / "rules.json"
+    data.write_text(json.dumps(rules, ensure_ascii=False), encoding="utf-8")
+    script = tmp_path / "score.js"
+    script.write_text(chr(10).join([
+        "const fs = require('fs');",
+        "const ext = " + json.dumps(str(EXT)) + ";",
+        "const { score } = require(ext + '/eval_cards.js'); const C = require(ext + '/card.js');",
+        "const { RulesBook } = require(ext + '/rules.js');",
+        "const cards = JSON.parse(fs.readFileSync(" + json.dumps(str(Path(__file__).resolve().parent / 'fixtures' / 'moderation_cards.json')) + ", 'utf8'));",
+        "const good = (c) => ({ list: c.expect.reject.map((e) => ({ attribute: e.attribute, decision: 'отклонить', resolution: e.resolution })) });",
+        "const book = new RulesBook(JSON.parse(fs.readFileSync(" + json.dumps(str(data)) + ", 'utf8')));",
+        "const phone = cards[4].card;",
+        "const ex = book.excerpts(C.cardQuery(phone, null), 24000, C.excerptSkip(phone), C.excerptPin(phone));",
+        "console.log(JSON.stringify({",
+        "  perfect: cards.filter((c) => score(c, good(c)).ok).length,",
+        "  trap: score(cards[14], { list: [{ attribute: 'Общие недочеты', decision: 'отклонить', resolution: 'В карточке есть указание на продажу копии и/или реплики' }] }).ok,",
+        "  wrong: score(cards[0], { list: [{ attribute: 'Общие недочеты', decision: 'отклонить', resolution: 'В карточке есть указание на продажу уцененного товара' }] }).ok,",
+        "  table: ex.includes('### Таблица критических брендов'), video: ex.includes('### На видео есть рекламная информация'),",
+        "  contacts: C.cardQuery(phone, null).includes('контакты соц сетей') }));",
+    ]), encoding="utf-8")
+    out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
+                                    check=True).stdout)
+    assert out == {"perfect": 20, "trap": False, "wrong": False, "table": True, "video": False, "contacts": True}

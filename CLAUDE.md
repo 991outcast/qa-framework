@@ -22,7 +22,7 @@
   рядом и согласен: ошибки снижают рейтинг и закрывают доступ к заданиям.
 - Новая площадка: селекторы и тексты кнопок не угадывать — сначала изучить реальный сайт.
 - Работа на T-Work не должна сломаться. Перед коммитом — полный прогон `python -m pytest`
-  (сейчас `190 passed, 1 skipped`, 9–12 минут). Тесты открывают браузер на локальных страницах
+  (сейчас `194 passed, 1 skipped`, 9–12 минут). Тесты открывают браузер на локальных страницах
   из `tests/fixtures`; к площадкам и к моделям не обращаются. Если в папке есть `.venv`, Python —
   `.venv\Scripts\python`. На компьютере пользователя Chromium Playwright не скачивается (CDN
   playwright не отвечает) — тесты запускать с `BROWSER_CHANNEL=chrome` (установленный Chrome).
@@ -41,7 +41,7 @@
 | `recorder.py` | режим записи |
 | `assistant.py` | режим помощника `--assist`: человек решает, модель подсвечивает ответ в текстовых заданиях |
 | `rules.py` | правила площадки из PDF: `--rules файл.pdf` → `knowledge/_rules-<площадка>.json` (разделы по заголовкам), разделы под задание (BM25) — в запрос помощника и агента; `--ask` — вопросы по правилам в терминале |
-| `extension/` | расширение Chrome (MV3, боковая панель): `content.js` только читает текст страницы *.ozon.ru, `rules.js` — тот же поиск, что `rules.py` (тест сверяет через Node), `sidepanel.js` — разделы сразу и ответ модели (Gemini/OpenRouter, ключ в chrome.storage). Ничего не нажимает |
+| `extension/` | расширение Chrome (MV3, боковая панель): `content.js` только читает текст страницы *.ozon.ru, `rules.js` — тот же поиск, что `rules.py` (тест сверяет через Node), `sidepanel.js` — разделы сразу и ответ модели (Gemini/OpenRouter, ключ в chrome.storage). Ничего не нажимает. Firefox — тот же код: `manifest.firefox.json` (sidebar_action, background.scripts), сборка `python extension/build_firefox.py` → `extension-firefox/` (вне git) |
 | `config.py`, `models.py` | все настройки (читаются из `.env`) и модели данных |
 | `adapters/` | площадки: `twork.py` (по умолчанию), `ozon_profit.py`, `yandex_tasks.py` (только помощник) |
 

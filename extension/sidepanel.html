@@ -9,6 +9,10 @@
   <header>
     <h1>Помощник модератора</h1>
     <div id="status" class="muted">Загрузка…</div>
+    <div id="perm" class="note" hidden>
+      Расширению нужен доступ к ozon.ru, фото карточек и сервису модели (в Firefox его выдают вручную).
+      <button id="perm-btn" type="button">Разрешить доступ</button>
+    </div>
   </header>
 
   <section id="answer-box">
@@ -64,6 +68,7 @@
   </details>
 
   <script src="rules.js"></script>
+  <script src="card.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

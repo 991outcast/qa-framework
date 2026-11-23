@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Помощник модератора",
+  "version": "2.0",
+  "description": "Читает карточку по атрибутам вместе с фото, сверяет со справочником правил и подсказывает решение по каждому атрибуту. Ничего не нажимает, видео не трогает.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://*.ozon.ru/*",
+    "https://*.ozone.ru/*",
+    "https://openrouter.ai/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [
+    { "matches": ["https://*.ozon.ru/*"], "js": ["content.js"], "run_at": "document_idle", "all_frames": true }
+  ],
+  "sidebar_action": {
+    "default_panel": "sidepanel.html",
+    "default_title": "Помощник модератора",
+    "open_at_install": true
+  },
+  "action": { "default_title": "Помощник модератора" },
+  "browser_specific_settings": {
+    "gecko": { "id": "moderator-helper@twork-agent.local", "strict_min_version": "128.0" }
+  }
+}

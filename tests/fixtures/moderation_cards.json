@@ -1,0 +1,1502 @@
+[
+ {
+  "id": 1,
+  "case": "Ашваганда в БАД — запрещённое растение",
+  "card": {
+   "name": "Ашваганда экстракт корня, 60 капсул",
+   "seller": "Здоровье Плюс 1110001",
+   "category": "БАД",
+   "group": "Аптека",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Ашваганда экстракт корня, 60 капсул",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Биологически активная добавка с экстрактом корня ашваганды. Принимать по 1 капсуле в день во время еды.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: БАД",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Ашваганда"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 2,
+  "case": "Ртутный термометр",
+  "card": {
+   "name": "Термометр медицинский стеклянный",
+   "seller": "Медтехника Дом 1110002",
+   "category": "Термометр медицинский",
+   "group": "Аптека",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Термометр медицинский стеклянный",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Классический ртутный термометр в футляре. Точность измерения 0,1 °C.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Термометр медицинский",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Ртутные термометры"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 3,
+  "case": "Энергетик не в категории «Энергетический напиток»",
+  "card": {
+   "name": "Напиток Flash Up Energy 0,45 л, 12 шт",
+   "seller": "Напитки Опт 1110003",
+   "category": "Газированный напиток",
+   "group": "Продукты питания",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Напиток Flash Up Energy 0,45 л, 12 шт",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Тонизирующий напиток с таурином и кофеином. Упаковка 12 банок по 0,45 л.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Газированный напиток",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "Энергетические напитки"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 4,
+  "case": "Модель Samsung в названии, бренд «Нет бренда»",
+  "card": {
+   "name": "Смартфон Самсунг A15 4/128 ГБ, черный",
+   "seller": "Мобильный Мир 1110004",
+   "category": "Смартфон",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Смартфон Самсунг A15 4/128 ГБ, черный",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Смартфон с экраном 6,5 дюйма, аккумулятор 5000 мА·ч, две SIM-карты.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Смартфон",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Бренд",
+     "resolution": "В описании и/или названии информация о другом бренде",
+     "rule": "Критические бренды"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 5,
+  "case": "Телеграм и телефон продавца в аннотации",
+  "card": {
+   "name": "Футболка оверсайз хлопок",
+   "seller": "Принт Мастер 1110005",
+   "category": "Футболка",
+   "group": "Одежда",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Футболка оверсайз хлопок",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Хлопок 100%, плотность 180 г. Другие расцветки — в нашем телеграм @primer_shop_tg, звоните +7 900 000-00-00.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Футболка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Информация в карточке нарушает принципы честной конкуренции",
+     "rule": "Ссылки, контакты"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 6,
+  "case": "Реплика «1 в 1, качество ААА»",
+  "card": {
+   "name": "Кроссовки мужские беговые",
+   "seller": "Обувь Сити 1110006",
+   "category": "Кроссовки",
+   "group": "Обувь",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Кроссовки мужские беговые",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Реплика 1 в 1, качество ААА — не отличить от оригинала. Сетчатый верх, мягкая подошва.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Кроссовки",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "В карточке есть указание на продажу копии и/или реплики",
+     "rule": "копии"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 7,
+  "case": "Список ключевых слов в аннотации",
+  "card": {
+   "name": "Термокружка 450 мл",
+   "seller": "Посуда Плюс 1110007",
+   "category": "Термокружка",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Термокружка 450 мл",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Держит тепло 6 часов. Ключевые слова: термокружка, кружка термос, тамблер, стакан для кофе, термостакан, кружка в машину.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Термокружка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Аннотация",
+     "resolution": "В аннотации указаны ключевые слова",
+     "rule": "ключевые слова"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 8,
+  "case": "Книга 18+ без признака «18»",
+  "card": {
+   "name": "Книга «Тёмные улицы», роман",
+   "seller": "Книжный Двор 1110008",
+   "category": "Печатная книга",
+   "group": "Книги",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Книга «Тёмные улицы», роман",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Остросюжетный роман. Содержит сцены насилия. 18+",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Признак 18+",
+     "status": "Не проверяется",
+     "value": "Нет",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Печатная книга",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "В карточке товара не указан признак «18»",
+     "rule": "признак «18»"
+    }
+   ],
+   "any_attribute": true
+  }
+ },
+ {
+  "id": 9,
+  "case": "Книга 1975 года не в «Букинистике»",
+  "card": {
+   "name": "Книга «Сказки народов мира»",
+   "seller": "Старая Полка 1110009",
+   "category": "Печатная книга: Детская литература",
+   "group": "Книги",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Книга «Сказки народов мира»",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Сборник сказок с иллюстрациями, твёрдый переплёт.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Год выпуска",
+     "status": "Не проверяется",
+     "value": "1975",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Печатная книга: Детская литература",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "Книги"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 10,
+  "case": "Нож «для самообороны»",
+  "card": {
+   "name": "Нож складной EDC",
+   "seller": "Туризм Мастер 1110010",
+   "category": "Нож туристический",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Нож складной EDC",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Надёжное оружие для самообороны: клинок 9 см, фиксатор, клипса.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Нож туристический",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Холодное оружие"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 11,
+  "case": "Упоминание Instagram и Facebook без дисклеймера",
+  "card": {
+   "name": "Кольцевая лампа 26 см со штативом",
+   "seller": "Фото Студия 1110011",
+   "category": "Кольцевая лампа",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Кольцевая лампа 26 см со штативом",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Лампа для съёмки видео в Instagram и Facebook: 3 режима света, штатив 2 м.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Кольцевая лампа",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "В карточке товара присутствует символика либо упоминания организаций Meta",
+     "rule": "Meta"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 12,
+  "case": "Уценённый товар",
+  "card": {
+   "name": "Кофеварка капельная 1,2 л",
+   "seller": "Техника Дом 1110012",
+   "category": "Кофеварка",
+   "group": "Бытовая техника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Кофеварка капельная 1,2 л",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Уценённый товар: вмятина на корпусе, коробка вскрыта. Работает исправно.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Кофеварка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "В карточке есть указание на продажу уцененного товара",
+     "rule": "Уцененные"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 13,
+  "case": "Продажа в ассортименте",
+  "card": {
+   "name": "Мяч резиновый детский 15 см",
+   "seller": "Игрушки Тут 1110013",
+   "category": "Мяч детский",
+   "group": "Детские товары",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Мяч резиновый детский 15 см",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Цвет в ассортименте, выбрать нельзя — отправим случайный.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Мяч детский",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "В карточке есть указание на продажу товара в ассортименте",
+     "rule": "ассортименте"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 14,
+  "case": "Товар бывший в употреблении",
+  "card": {
+   "name": "Наушники беспроводные с кейсом",
+   "seller": "Звук Шоп 1110014",
+   "category": "Наушники",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Наушники беспроводные с кейсом",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Состояние отличное, как новые, следы использования минимальные.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Наушники",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "бывшие в употреблении"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 15,
+  "case": "Ловушка: «остерегайтесь подделок»",
+  "card": {
+   "name": "Крем для рук питательный 75 мл",
+   "seller": "Лесная Поляна Косметик 1110015",
+   "category": "Крем для рук",
+   "group": "Красота и гигиена",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Лесная Поляна",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Крем для рук питательный 75 мл",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Оригинальная продукция производителя. Остерегайтесь подделок!",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "подделок"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Крем для рук",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 16,
+  "case": "Ловушка: «свяжитесь с нами» и горячая линия 8 800",
+  "card": {
+   "name": "Пылесос беспроводной вертикальный",
+   "seller": "Уютный Дом 1110016",
+   "category": "Пылесос",
+   "group": "Бытовая техника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Уютный Дом",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Пылесос беспроводной вертикальный",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Мощность всасывания 120 Вт. Остались вопросы? Свяжитесь с нами в чате или по горячей линии 8 800 000-00-00.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Пылесос",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 17,
+  "case": "Ловушка: чехол «для Samsung»",
+  "card": {
+   "name": "Чехол для Samsung Galaxy A15, силикон",
+   "seller": "Аксессуары Про 1110017",
+   "category": "Чехол для смартфона",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Чехол для Samsung Galaxy A15, силикон",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Силиконовый чехол, совместим с Samsung Galaxy A15. Защищает от царапин.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "Samsung"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Чехол для смартфона",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 18,
+  "case": "Ловушка: подарок к товару",
+  "card": {
+   "name": "Одеяло всесезонное 200х220",
+   "seller": "Тёплый Дом 1110018",
+   "category": "Одеяло",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Тёплый Дом",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Одеяло всесезонное 200х220",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Акция! Подушка в подарок. Наполнитель — микроволокно, чехол из хлопка.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "Акция"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Одеяло",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 19,
+  "case": "Ловушка: «мобил» в «автомобильных»",
+  "card": {
+   "name": "Кружка дорожная 350 мл",
+   "seller": "Посуда Плюс 1110019",
+   "category": "Кружка",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Кружка дорожная 350 мл",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Кружка для автомобильных поездок с герметичной крышкой.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "мобил"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Кружка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 20,
+  "case": "Ловушка: цвет «может незначительно отличаться»",
+  "card": {
+   "name": "Карандаши цветные 24 цвета",
+   "seller": "Канцелярия Мир 1110020",
+   "category": "Карандаши цветные",
+   "group": "Канцтовары",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Карандаши цветные 24 цвета",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Мягкий грифель, шестигранный корпус. Цвет корпуса может незначительно отличаться от фото.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [
+      "отличаться"
+     ],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Карандаши цветные",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ }
+]
