@@ -438,3 +438,28 @@ def test_script_checks_and_fixes_the_model_answer(tmp_path):
     assert out["age"] == ["В карточке товара не указан признак «18»"]
     assert out["shocker"] == ["Товар нельзя продавать на Ozon"] and out["trapsClean"] == []
     assert out["remap"] and out["exception"] and out["honestNoSigns"] == "смотрите сами" and out["missed"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")
+def test_replaced_main_photo_needs_a_new_card(tmp_path):
+    """Повторная модерация, главное фото «Изменено» и на нём другой товар: модель пишет «не имеет отношения»,
+    а по справочнику это «Для добавления нового товара не была создана новая карточка». Без повторной модерации
+    «не имеет отношения» остаётся."""
+    def card(changed, badges):
+        return {"name": "Рюкзак 20 л", "seller": "Пример", "category": "Рюкзак", "group": "Галантерея", "badges": badges,
+                "attributes": [{"title": "Изображение", "status": "Изменено" if changed else "", "value": "",
+                                "old": "", "checkable": True, "changed": changed, "active": False, "images": ["a", "b"],
+                                "video": False, "highlights": [], "reasons": []}]}
+    script = tmp_path / "photo.js"
+    script.write_text(chr(10).join([
+        "const C = require(" + json.dumps(str(EXT / "card.js")) + ");",
+        "const v = () => ({ list: [{ attribute: 'Изображение', decision: 'отклонить', reason: 'перчатки вместо рюкзака',",
+        "  resolution: 'Изображение на главном фото не имеет никакого отношения к товару/продавцу' }] });",
+        "const a = C.finalize(v(), " + json.dumps(card(True, ["Повторная модерация"]), ensure_ascii=False) + ", null, new Map(), []);",
+        "const b = C.finalize(v(), " + json.dumps(card(False, []), ensure_ascii=False) + ", null, new Map(), []);",
+        "console.log(JSON.stringify([a.list[0].resolution, b.list[0].resolution]));",
+    ]), encoding="utf-8")
+    out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
+                                    check=True).stdout)
+    assert out == ["Для добавления нового товара не была создана новая карточка",
+                   "Изображение на главном фото не имеет никакого отношения к товару/продавцу"]

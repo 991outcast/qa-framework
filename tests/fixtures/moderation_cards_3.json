@@ -1,0 +1,1779 @@
+[
+ {
+  "id": 1,
+  "case": "Подлинный государственный орден",
+  "card": {
+   "name": "Орден Мужества, подлинник",
+   "seller": "Награды 5550001",
+   "category": "Награда",
+   "group": "Антиквариат и коллекционирование",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Орден Мужества, подлинник",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Подлинный орден Мужества с удостоверением.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Награда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Ордена"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 2,
+  "case": "Криптокошелёк с суммой на счёте",
+  "card": {
+   "name": "Аппаратный кошелёк для криптовалюты с балансом 0,01 BTC",
+   "seller": "Крипто Шоп 5550002",
+   "category": "Аппаратный криптокошелёк",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Аппаратный кошелёк для криптовалюты с балансом 0,01 BTC",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "На кошельке уже 0,01 BTC — получите сразу после покупки.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Аппаратный криптокошелёк",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "валюты"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 3,
+  "case": "Лотерейный билет",
+  "card": {
+   "name": "Лотерейный билет «Удача», 5 шт",
+   "seller": "Удачный Шанс 5550003",
+   "category": "Лотерейный билет",
+   "group": "Хобби и творчество",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Лотерейный билет «Удача», 5 шт",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Тираж каждую неделю, выигрыш до 1 000 000 ₽.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Лотерейный билет",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Лотерейные"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 4,
+  "case": "Тестер духов",
+  "card": {
+   "name": "Тестер парфюма «Морской бриз» 100 мл, tester",
+   "seller": "Аромат Тут 5550004",
+   "category": "Парфюмерная вода",
+   "group": "Красота и гигиена",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Тестер парфюма «Морской бриз» 100 мл, tester",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Тестер без крышки, не для продажи.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Парфюмерная вода",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Тестеры"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 5,
+  "case": "Промо-товар «не для продажи»",
+  "card": {
+   "name": "Зверятыши, набор 10 шт",
+   "seller": "Игрушки Тут 5550005",
+   "category": "Фигурка",
+   "group": "Детские товары",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Зверятыши, набор 10 шт",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Фигурки из акции сети магазинов, на упаковке «не для продажи».",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Фигурка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Промо"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 6,
+  "case": "Дропшиппинг",
+  "card": {
+   "name": "Смарт-часы спортивные",
+   "seller": "Гаджет Мир 5550006",
+   "category": "Смарт-часы",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Смарт-часы спортивные",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Работаем по дропшиппингу: после заказа поставщик отправит часы вам напрямую.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Смарт-часы",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Дропшиппинг"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 7,
+  "case": "Детское питание не в категории «для детей до 3 лет»",
+  "card": {
+   "name": "Каша молочная гречневая с 6 месяцев, 200 г",
+   "seller": "Детки 5550007",
+   "category": "Каша",
+   "group": "Продукты питания",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Каша молочная гречневая с 6 месяцев, 200 г",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Детская каша для малышей от 6 месяцев.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Каша",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "Детское питание"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 8,
+  "case": "БАД в «Спортивном питании»",
+  "card": {
+   "name": "Омега-3 1000 мг, 90 капсул",
+   "seller": "Здоровье Плюс 5550008",
+   "category": "Спортивное питание",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Омега-3 1000 мг, 90 капсул",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Биологически активная добавка к пище, источник омега-3.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Спортивное питание",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "БАДы"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 9,
+  "case": "Инсектицид в «Удобрениях»",
+  "card": {
+   "name": "Средство от тли и трипсов 50 мл",
+   "seller": "Сад Мастер 5550009",
+   "category": "Удобрение",
+   "group": "Дача и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Средство от тли и трипсов 50 мл",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Инсектицид для защиты растений от тли и трипсов.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Удобрение",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "Удобрения"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 10,
+  "case": "Моторное масло не в своей категории",
+  "card": {
+   "name": "Масло моторное 5W-40 синтетическое, 4 л",
+   "seller": "Авто Мир 5550010",
+   "category": "Автохимия",
+   "group": "Автотовары",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Масло моторное 5W-40 синтетическое, 4 л",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Синтетическое моторное масло для бензиновых двигателей.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Автохимия",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории",
+     "rule": "Моторные масла"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 11,
+  "case": "Сим-карта не в «Тарифе для телефона»",
+  "card": {
+   "name": "Сим-карта с тарифом «Безлимит»",
+   "seller": "Связь Тут 5550011",
+   "category": "Аксессуары для телефона",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Сим-карта с тарифом «Безлимит»",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Сим-карта с безлимитным интернетом, активация онлайн.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Аксессуары для телефона",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "Сим-карты"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 12,
+  "case": "Кабель для Starlink",
+  "card": {
+   "name": "Кабель для антенны Starlink 15 м",
+   "seller": "Связь Тут 5550012",
+   "category": "Кабель",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Кабель для антенны Starlink 15 м",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Удлинённый кабель для спутниковой антенны Starlink.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Кабель",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Старлинка"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 13,
+  "case": "Автоаккумулятор не в своей категории",
+  "card": {
+   "name": "Аккумулятор автомобильный 60 Ач, кислотный",
+   "seller": "Авто Мир 5550013",
+   "category": "Аккумулятор для ИБП",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Аккумулятор автомобильный 60 Ач, кислотный",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Свинцово-кислотный аккумулятор для легковых автомобилей.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Аккумулятор для ИБП",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "Аккумуляторы"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 14,
+  "case": "Ритуальный венок",
+  "card": {
+   "name": "Венок ритуальный 80 см",
+   "seller": "Память 5550014",
+   "category": "Искусственные цветы",
+   "group": "Дом и сад",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Венок ритуальный 80 см",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Траурный венок из искусственных цветов с лентой.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Искусственные цветы",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "ритуального"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 15,
+  "case": "Эротическое бельё в обычном белье",
+  "card": {
+   "name": "Комплект белья эротический с открытыми интимными местами",
+   "seller": "Белье Тут 5550015",
+   "category": "Комплект нижнего белья",
+   "group": "Одежда",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Комплект белья эротический с открытыми интимными местами",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Кружевной эротический комплект.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Комплект нижнего белья",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар должен находиться в ограниченной категории или группе товаров",
+     "rule": "Эротическое белье"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 16,
+  "case": "Наручники «для полиции»",
+  "card": {
+   "name": "Наручники стальные для полиции",
+   "seller": "Защита Плюс 5550016",
+   "category": "Наручники",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Наручники стальные для полиции",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Профессиональные наручники для правоохранительных органов, ключ в комплекте.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Наручники",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Спецсредства"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 17,
+  "case": "Бита «для самообороны»",
+  "card": {
+   "name": "Бита алюминиевая 71 см",
+   "seller": "Спорт Мастер 5550017",
+   "category": "Бейсбольная бита",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Бита алюминиевая 71 см",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Лёгкая бита — надёжное средство для самообороны.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Бейсбольная бита",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "Товар нельзя продавать на Ozon",
+     "rule": "Биты"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 18,
+  "case": "Нецензурное слово в аннотации без признака 18",
+  "card": {
+   "name": "Футболка с надписью",
+   "seller": "Принт Мастер 5550018",
+   "category": "Футболка",
+   "group": "Одежда",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Футболка с надписью",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Футболка с крупной надписью «Иди на х*й», хлопок 100%.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Признак 18+",
+     "status": "Не проверяется",
+     "value": "Нет",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Футболка",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [
+    {
+     "attribute": "Общие недочеты",
+     "resolution": "На товаре присутствует нецензурная лексика без указания признака «18»",
+     "rule": "нецензурная"
+    }
+   ],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 19,
+  "case": "Ловушка: сувенирная валюта",
+  "card": {
+   "name": "Сувенирные доллары, игровые банкноты 100 шт",
+   "seller": "Праздник Тут 5550019",
+   "category": "Сувенир",
+   "group": "Хобби и творчество",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Сувенирные доллары, игровые банкноты 100 шт",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Игровые сувенирные банкноты для розыгрышей, не являются платёжным средством.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Сувенир",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 20,
+  "case": "Ловушка: муляж медали",
+  "card": {
+   "name": "Муляж медали «За отвагу», сувенир",
+   "seller": "Сувенир Мастер 5550020",
+   "category": "Сувенир",
+   "group": "Хобби и творчество",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Муляж медали «За отвагу», сувенир",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Сувенирный муляж медали для коллекции и реконструкции.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Сувенир",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 21,
+  "case": "Ловушка: коллекционный лотерейный билет",
+  "card": {
+   "name": "Коллекционный лотерейный билет 1985 года",
+   "seller": "Старая Полка 5550021",
+   "category": "Коллекционирование",
+   "group": "Антиквариат и коллекционирование",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Коллекционный лотерейный билет 1985 года",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Погашенный коллекционный лотерейный билет для коллекции.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Коллекционирование",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 22,
+  "case": "Ловушка: тестер качества воздуха",
+  "card": {
+   "name": "Тестер качества воздуха CO2",
+   "seller": "Дом Техника 5550022",
+   "category": "Анализатор воздуха",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Тестер качества воздуха CO2",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Тестер качества воздуха: CO2, температура и влажность.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Анализатор воздуха",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 23,
+  "case": "Ловушка: спортивная бита",
+  "card": {
+   "name": "Бита бейсбольная деревянная 81 см",
+   "seller": "Спорт Мастер 5550023",
+   "category": "Бейсбольная бита",
+   "group": "Спорт и отдых",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Бита бейсбольная деревянная 81 см",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Бита для игры в бейсбол, массив ясеня.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Бейсбольная бита",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ },
+ {
+  "id": 24,
+  "case": "Ловушка: сим-карта в подарок к смартфону",
+  "card": {
+   "name": "Смартфон 6/128 ГБ + сим-карта в подарок",
+   "seller": "Мобильный Мир 5550024",
+   "category": "Смартфон",
+   "group": "Электроника",
+   "badges": [],
+   "attributes": [
+    {
+     "title": "Бренд",
+     "status": "",
+     "value": "Нет бренда",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": true,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Название",
+     "status": "Не проверяется",
+     "value": "Смартфон 6/128 ГБ + сим-карта в подарок",
+     "old": "",
+     "checkable": false,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Аннотация",
+     "status": "",
+     "value": "Смартфон с экраном 6,7 дюйма. В подарок — сим-карта с тарифом.",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    },
+    {
+     "title": "Общие недочеты",
+     "status": "",
+     "value": "Проверьте товар на критичные нарушения — некоторые из них могут зависеть от категории товара. Если их нет — примите атрибут.\nКатегория: Смартфон",
+     "old": "",
+     "checkable": true,
+     "changed": false,
+     "active": false,
+     "images": [],
+     "video": false,
+     "highlights": [],
+     "reasons": []
+    }
+   ]
+  },
+  "expect": {
+   "reject": [],
+   "any_attribute": false
+  }
+ }
+]
