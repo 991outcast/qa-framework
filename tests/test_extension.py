@@ -389,3 +389,52 @@ def test_reference_cards_and_scoring(tmp_path):
     out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
                                     check=True).stdout)
     assert out == {"perfect": 20, "trap": False, "wrong": False, "table": True, "video": False, "contacts": True}
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")
+def test_script_checks_and_fixes_the_model_answer(tmp_path):
+    """Скрипт до модели находит точные нарушения (контакты, ключевые слова, маркетплейс, Meta, «18+» у книги,
+    однозначно запрещённые товары) и ничего не находит в ловушках; после модели — переносит резолюцию на свой
+    атрибут, снимает «ключевые слова» без признаков, ставит «смотрите сами», если подходит исключение раздела,
+    и добавляет пропущенные точные находки. Ответы модели — из настоящих прогонов, где она ошиблась."""
+    fixtures = Path(__file__).resolve().parent / "fixtures"
+    rules = _data()
+    rules["sections"] += [
+        {"path": [], "title": "Информация в карточке нарушает принципы честной конкуренции",
+         "text": "Применяется к: Атрибут: «Общие недочеты»\nКонтакты, ссылки, акции, маркетплейсы."},
+        {"path": [], "title": "В аннотации указаны ключевые слова", "text": "Применяется к: Атрибут: «Аннотация»\nТеги."},
+        {"path": [], "title": "«Товар нельзя продавать на Ozon». Электрошокеры",
+         "text": "Что нельзя:\nЭлектрошоковые устройства\nИсключение (принимаем):\nМухобойки с электрошоком"}]
+    data = tmp_path / "rules.json"
+    data.write_text(json.dumps(rules, ensure_ascii=False), encoding="utf-8")
+    script = tmp_path / "check.js"
+    script.write_text(chr(10).join([
+        "const fs = require('fs'); const ext = " + json.dumps(str(EXT)) + ";",
+        "const C = require(ext + '/card.js'); const { RulesBook } = require(ext + '/rules.js');",
+        "const { score } = require(ext + '/eval_cards.js');",
+        "const book = new RulesBook(JSON.parse(fs.readFileSync(" + json.dumps(str(data)) + ", 'utf8')));",
+        "const res = C.buildResolutions(book);",
+        "const load = (f) => JSON.parse(fs.readFileSync(" + json.dumps(str(fixtures)) + " + '/' + f, 'utf8'));",
+        "const all = [...load('moderation_cards.json'), ...load('moderation_cards_2.json').map((c) => ({ ...c, id: c.id + 20 }))];",
+        "const byId = (id) => all.find((c) => c.id === id);",
+        "const enforced = (c) => C.scanCard(c.card, book).filter((f) => f.enforce).map((f) => f.resolution);",
+        "const fin = (c, list) => C.finalize({ list }, c.card, book, res, C.scanCard(c.card, book));",
+        "const H = 'Информация в карточке нарушает принципы честной конкуренции';",
+        "console.log(JSON.stringify({",
+        "  contacts: enforced(byId(5)), keywords: enforced(byId(7)), market: enforced(byId(32)), meta: enforced(byId(11)),",
+        "  age: enforced(byId(8)), shocker: enforced(byId(28)), trapsClean: all.filter((c) => !c.expect.reject.length && enforced(c).length).map((c) => c.id),",
+        "  hotline: enforced(byId(16)),",
+        "  remap: score(byId(5), fin(byId(5), [{ attribute: 'Аннотация', decision: 'отклонить', resolution: 'В аннотации указаны ключевые слова', reason: 'контакты в тексте' }])).ok,",
+        "  exception: score(byId(40), fin(byId(40), [{ attribute: 'Общие недочеты', decision: 'отклонить', resolution: 'Товар нельзя продавать на Ozon', reason: 'электрошок', section: '«Товар нельзя продавать на Ozon». Электрошокеры' }])).ok,",
+        "  honestNoSigns: fin(byId(15), [{ attribute: 'Общие недочеты', decision: 'отклонить', resolution: H, reason: 'оригинальная продукция' }]).list[0].decision,",
+        "  missed: score(byId(1), fin(byId(1), [])).ok }));",
+    ]), encoding="utf-8")
+    out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
+                                    check=True).stdout)
+    honest = "Информация в карточке нарушает принципы честной конкуренции"
+    assert out["contacts"] == [honest] and out["market"] == [honest] and out["hotline"] == []
+    assert out["keywords"] == ["В аннотации указаны ключевые слова"]
+    assert out["meta"] == ["В карточке товара присутствует символика либо упоминания организаций Meta"]
+    assert out["age"] == ["В карточке товара не указан признак «18»"]
+    assert out["shocker"] == ["Товар нельзя продавать на Ozon"] and out["trapsClean"] == []
+    assert out["remap"] and out["exception"] and out["honestNoSigns"] == "смотрите сами" and out["missed"]

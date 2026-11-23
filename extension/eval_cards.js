@@ -48,11 +48,51 @@ function request(url, data, headers) {
   });
 }
 
+// фото карточки — как в панели (cardPhotos): проверяемые атрибуты без видео, у «Изменено» — новое и старое.
+// Адрес ir.ozone.ru — скачать (wc1000, как в панели), иначе — файл рядом с файлом карточек
+function cardPhotos(card) {
+  const photos = [];
+  for (const a of card.attributes) {
+    if (!a.checkable || a.video) continue;
+    a.images.forEach((src, i) => {
+      const label = a.changed && a.images.length === 2 ? (i === 0 ? ' (новое)' : ' (старое)') : '';
+      photos.push({ src, label: `«${a.title}»${label}` });
+    });
+  }
+  return photos;
+}
+
+function download(url) {
+  const wc = url.replace(/^(https:\/\/ir[^/]*\.ozone\.ru\/s3\/[^/]+\/)(?!wc\d+\/)([^/?#]+\.(?:jpe?g|png|webp))$/i, '$1wc1000/$2');
+  return new Promise((resolve, reject) => {
+    require('https').get(wc, { family: 4, timeout: 60000 }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => (res.statusCode === 200 ? resolve(Buffer.concat(chunks)) : reject(new Error('фото ' + res.statusCode))));
+    }).on('error', reject).on('timeout', function () { this.destroy(new Error('фото: нет ответа')); });
+  });
+}
+
+async function photoData(src, baseDir) {
+  const path = require('path');
+  const data = /^https?:/.test(src) ? await download(src) : fs.readFileSync(path.resolve(baseDir, src));
+  const ext = (src.match(/\.(png|webp|jpe?g)(?:$|\?)/i) || [, 'jpeg'])[1].toLowerCase().replace('jpg', 'jpeg');
+  return `data:image/${ext};base64,${data.toString('base64')}`;
+}
+
 async function ask(item, book, resolutions, opts) {
+  const photos = cardPhotos(item.card);
+  const facts = C.scanCard(item.card, book);
   const text = book.excerpts(C.cardQuery(item.card, null), opts.budget, C.excerptSkip(item.card), C.excerptPin(item.card)) + '\n\n'
-    + C.cardText(item.card, [], resolutions, null);
+    + C.cardText(item.card, photos, resolutions, null) + C.factsText(facts);
+  const content = [{ type: 'text', text }];
+  for (const [i, p] of photos.entries()) {
+    const url = await photoData(p.src, opts.baseDir).catch(() => null);
+    content.push({ type: 'text', text: `ФОТО ${i + 1} — ${p.label}` + (url ? '' : ' (не загрузилось)') });
+    if (url) content.push({ type: 'image_url', image_url: { url } });
+  }
   const body = { model: opts.model, temperature: 0, max_tokens: 3000, response_format: { type: 'json_object' },
-                 messages: [{ role: 'system', content: C.CARD_PROMPT }, { role: 'user', content: [{ type: 'text', text }] }] };
+                 messages: [{ role: 'system', content: C.CARD_PROMPT }, { role: 'user', content }] };
   if (opts.provider === 'openrouter') {
     body.usage = { include: true };
     body.reasoning = { effort: process.env.EVAL_REASONING || 'minimal' };   // как в панели; low — модель «думает»
@@ -74,15 +114,16 @@ async function ask(item, book, resolutions, opts) {
   if (res.status === 400 && body.reasoning) { delete body.reasoning; res = await post(); }
   if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
-  const content = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
-  return { verdicts: C.parseVerdicts(content), cost: data.usage && data.usage.cost || 0 };
+  const reply = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
+  return { verdicts: C.finalize(C.parseVerdicts(reply), item.card, book, resolutions, facts),
+           cost: data.usage && data.usage.cost || 0 };
 }
 
 async function main() {
   const [rulesPath, cardsPath, modelArg] = process.argv.slice(2);
   const provider = process.env.EVAL_PROVIDER || 'openrouter';
   const opts = {
-    provider, budget: Number(process.env.EVAL_RULES_CHARS || 40000),
+    provider, budget: Number(process.env.EVAL_RULES_CHARS || 40000), baseDir: require('path').dirname(cardsPath),
     model: modelArg || (provider === 'gemini' ? 'gemini-3.1-flash-lite' : 'z-ai/glm-5.3-flash'),
     key: provider === 'gemini' ? process.env.GEMINI_API_KEY : process.env.OPENROUTER_API_KEY,
     url: process.env.EVAL_API_URL || (provider === 'gemini'

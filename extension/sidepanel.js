@@ -188,9 +188,12 @@ async function ask(t, question = '') {
   try {
     let body;
     let photos = [];
+    let facts = [];
     if (t.card && !question) {
       photos = cardPhotos(t.card);
-      const content = [{ type: 'text', text: book.excerpts(queryOf(t), budget, excerptSkip(t.card), excerptPin(t.card)) +'\n\n' + cardText(t.card, photos, resolutionsByAttr, rich) }];
+      facts = scanCard(t.card, book);            // точные находки скрипта — до модели
+      const content = [{ type: 'text', text: book.excerpts(queryOf(t), budget, excerptSkip(t.card), excerptPin(t.card))
+        + '\n\n' + cardText(t.card, photos, resolutionsByAttr, rich) + factsText(facts) }];
       const loaded = await Promise.all(photos.map((p) => toDataUrl(p.url).catch(() => null)));
       loaded.forEach((url, i) => {
         content.push({ type: 'text', text: `ФОТО ${i + 1} — ${photos[i].label}` + (url ? '' : ' (не загрузилось)') });
@@ -220,7 +223,8 @@ async function ask(t, question = '') {
     const data = await res.json();
     const content = (data.choices && data.choices[0] && data.choices[0].message.content || '').trim();
     const result = { text: content || 'Модель вернула пустой ответ.', model, photos: photos.length,
-                     verdicts: t.card && !question ? parseVerdicts(content) : null,
+                     verdicts: t.card && !question
+                       ? finalize(parseVerdicts(content), t.card, book, resolutionsByAttr, facts) : null,
                      seconds: (performance.now() - started) / 1000,
                      cost: data.usage && typeof data.usage.cost === 'number' ? data.usage.cost : null };
     answers.set(key, result);
@@ -252,6 +256,12 @@ function render(r) {
   box.replaceChildren();
   if (!r.verdicts) { setText($('answer'), r.text); return; }
   setText($('answer'), r.verdicts.summary || 'Решение по атрибутам:');
+  for (const note of [...(r.verdicts.notes || []), ...(r.verdicts.warnings || [])]) {   // что поправил скрипт
+    const line = document.createElement('div');
+    line.className = 'note';
+    line.textContent = note;
+    box.append(line);
+  }
   for (const v of r.verdicts.list) {
     const row = document.createElement('div');
     const cls = v.decision === 'отклонить' ? 'bad' : v.decision === 'принять' ? 'ok' : 'look';

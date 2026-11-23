@@ -127,17 +127,20 @@
     ensureStyle();
     for (const el of root.querySelectorAll('[class*="_attribute_"][class*="_frame_"]')) {
       const title = norm(text(q(el, '[class*="_topLeft_"]')));
-      const hint = hints.find((h) => norm(h.attribute) === title);
-      if (!hint) continue;
-      const button = q(el, hint.decision === 'отклонить' ? '[class*="_declineButton_"]' : '[class*="_approveButton_"]');
-      if (button && (hint.decision === 'принять' || hint.decision === 'отклонить')) {
-        button.setAttribute('data-ai-hint', hint.decision === 'отклонить' ? 'decline' : 'approve');
+      // у атрибута может быть несколько отклонений (несколько причин) — отметить все
+      const mine = hints.filter((h) => norm(h.attribute) === title);
+      if (!mine.length) continue;
+      const decline = mine.some((h) => h.decision === 'отклонить');
+      const button = q(el, decline ? '[class*="_declineButton_"]' : '[class*="_approveButton_"]');
+      if (button && (decline || mine.some((h) => h.decision === 'принять'))) {
+        button.setAttribute('data-ai-hint', decline ? 'decline' : 'approve');
       }
-      if (hint.decision !== 'отклонить' || !hint.resolution) continue;
-      const want = norm(hint.resolution);
-      for (const label of el.querySelectorAll('[class*="_declinesPick_"] label')) {
-        const have = norm(text(label));
-        if (have && (have === want || have.includes(want) || want.includes(have))) label.setAttribute('data-ai-hint', 'reason');
+      for (const hint of mine.filter((h) => h.decision === 'отклонить' && h.resolution)) {
+        const want = norm(hint.resolution);
+        for (const label of el.querySelectorAll('[class*="_declinesPick_"] label')) {
+          const have = norm(text(label));
+          if (have && (have === want || have.includes(want) || want.includes(have))) label.setAttribute('data-ai-hint', 'reason');
+        }
       }
     }
   }

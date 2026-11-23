@@ -1,6 +1,11 @@
 // Карточка модерации → запрос модели и разбор ответа. Общий код боковой панели (sidepanel.js) и проверки
 // на эталонных карточках (eval_cards.js): проверяется ровно то, что работает в браузере.
 
+// в панели tokens() даёт rules.js (подключён раньше), в Node — require
+if (typeof module !== 'undefined' && typeof tokens === 'undefined') {
+  var { tokens } = require('./rules.js');   // eslint-disable-line no-var
+}
+
 // ответ текстом (вопрос по правилам, страница без карточки) — тот же текст, что _RULES_PROMPT в openrouter_connector.py
 const PROMPT = 'Ты помогаешь модератору карточек товаров. Тебе даны выдержки из справочника правил площадки и '
   + 'карточка (или вопрос). Решай ТОЛЬКО по правилам из выдержек; если подходящего запрета нет — атрибут верный '
@@ -27,6 +32,9 @@ const CARD_PROMPT = 'Ты помогаешь модератору карточе
   + 'аннотации есть в «Таблице критических брендов» (она в выдержках) и не совпадает с атрибутом «Бренд». Бренда '
   + 'нет в таблице — при «Нет бренда» принять. «Для <бренда>», «совместим с <брендом>» — товар не этого бренда: '
   + 'принять.\n'
+  + 'Фото: «Изображение» (главное) и «Изображения» (дополнительные) решай отдельно — нарушение на главном фото '
+  + 'часто повторяется на дополнительных, проверь каждое. Водяной знак с названием магазина или продавца без ссылки '
+  + 'на сайт — допустимо (запрещены ссылки, телефоны, соцсети, логотипы других маркетплейсов).\n'
   + 'Сравни название (даже «не проверяется»), аннотацию и категорию: разные тип товара, бренд, цвет, размер, модель — '
   + '«Общие недочеты»: «Информация в карточке товара противоречит друг другу».\n'
   + 'Товар в категории, которую правило называет разрешённой для него (например, энергетик в «Энергетический '
@@ -169,7 +177,275 @@ function parseVerdicts(content) {
   }
 }
 
+// ---------------------------------------------------------------------------------------------------------
+// Скрипт до модели: нарушения, которые находятся точно, без ИИ. enforce — находка надёжна: если модель её
+// пропустила, решение исправляется (телефон в аннотации — всегда «честная конкуренция»); без enforce — подсказка
+// модели и предупреждение в панели (бренд из таблицы может быть именем: «Русалочка Ариэль»).
+const R_HONEST = 'Информация в карточке нарушает принципы честной конкуренции';
+const R_KEYWORDS = 'В аннотации указаны ключевые слова';
+const R_META = 'В карточке товара присутствует символика либо упоминания организаций Meta';
+const R_AGE = 'В карточке товара не указан признак «18»';
+const R_BRAND = 'В описании и/или названии информация о другом бренде';
+
+const PHONE_RE = /(?:\+7|(?<!\d)8)[\s(-]*(\d{3})[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}(?!\d)/g;
+const EMAIL_RE = /[\w.+-]+@[\w-]+\.[a-z]{2,}/gi;
+const NICK_RE = /(?:^|[\s(«"])@[a-z0-9_.]{3,}/gi;
+const URL_RE = /(?:https?:\/\/|www\.)[^\s,;)»"]+|\b[a-z0-9-]{2,}\.(?:ru|com|su|me|net|org|shop|store|рф)\b/gi;
+const MESSENGER_RE = /телеграм|telegram|\bt\.me\b|whats ?app|ватсап|вотсап|viber|вайбер|вконтакте|vk\.com/i;
+const MARKETPLACE_RE = /wildberries|вайлдберриз|вайлдбериз|aliexpress|алиэкспресс|яндекс[ .]?маркет|avito|авито|мегамаркет|lamoda|ламода|\bjoom\b|kazanexpress|магнит маркет/i;
+const META_RE = /instagram|инстаграм|facebook|фейсбук/i;
+const OZON_LINK_RE = /ozon\.ru/i;
+
+// таблица критических брендов: «Samsung Самсунг», «Belles Lettres Бель Летр Проверяем только в книгах»
+function criticalBrands(book) {
+  if (!book) return [];
+  const table = book.sections.find((s) => /^таблица критических брендов/i.test(s.title));
+  if (!table) return [];
+  const out = [];
+  for (const line of table.text.split('\n')) {
+    const m = line.match(/^([A-Za-z0-9][A-Za-z0-9'&.+\- ]{1,40}?)\s+([А-ЯЁа-яё].*)$/);
+    if (!m) continue;
+    const latin = m[1].trim();
+    if (latin.length < 3 || /^\d+$/.test(latin)) continue;
+    const note = (m[2].match(/(Проверяем только[^,]*|Не проверяем[^,]*)$/i) || [])[1] || '';
+    const variants = m[2].replace(note, '').split(',').map((v) => v.trim()).filter((v) => v.length >= 3);
+    out.push({ latin, variants, note });
+  }
+  return out;
+}
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function scanCard(card, book) {
+  const facts = [];
+  const attr = (re) => card.attributes.find((a) => re.test(a.title));
+  const annotation = attr(/^аннотация/i);
+  const nameText = card.name || (attr(/^название/i) || {}).value || '';
+  const text = [nameText, annotation ? annotation.value : ''].join('\n');
+  const add = (attribute, resolution, evidence, enforce = true) => {
+    if (!facts.some((f) => f.attribute === attribute && f.resolution === resolution)) {
+      facts.push({ attribute, resolution, evidence, enforce });
+    }
+  };
+  // контакты, ссылки, мессенджеры; 8 800 и help@ozon.ru — можно
+  const phones = [...text.matchAll(PHONE_RE)].filter((m) => m[1] !== '800').map((m) => m[0].trim());
+  const emails = (text.match(EMAIL_RE) || []).filter((e) => !OZON_LINK_RE.test(e));
+  const nicks = (text.replace(EMAIL_RE, '').match(NICK_RE) || []).map((n) => n.trim());
+  const urls = (text.replace(EMAIL_RE, '').match(URL_RE) || []).filter((u) => !OZON_LINK_RE.test(u));
+  const messenger = text.match(MESSENGER_RE);
+  const contacts = [...phones, ...emails, ...nicks, ...urls, ...(messenger ? [messenger[0]] : [])];
+  if (contacts.length) add('Общие недочеты', R_HONEST, 'контакты/ссылки: ' + contacts.slice(0, 3).join(', '));
+  const market = text.match(MARKETPLACE_RE);
+  if (market) add('Общие недочеты', R_HONEST, 'упомянут маркетплейс: ' + market[0]);
+  // акция за отзыв: «оставьте отзыв — вернём 300 ₽», «баллы за отзыв»
+  const review = text.match(/отзыв[^.!?\n]{0,60}(верн|получ|начисл|кешб[эе]к|балл|₽|руб|деньг|скидк|подар)|(верн|получ|начисл|кешб[эе]к|балл|₽|руб|деньг|скидк)[^.!?\n]{0,60}отзыв/i);
+  if (review) add('Общие недочеты', R_HONEST, `акция за отзыв: «${review[0].slice(0, 60)}»`);
+  // ключевые слова: 5+ хештегов или «Ключевые слова: …»
+  if (annotation) {
+    const tags = annotation.value.match(/#[\wа-яё]+/gi) || [];
+    const label = annotation.value.match(/(ключевые слова|поисковые слова|теги|нас ищут|с этим товаром ищут)\s*:/i);
+    if (tags.length >= 5 || label) add('Аннотация', R_KEYWORDS, label ? `«${label[0]}»` : `${tags.length} хештегов`);
+  }
+  // Meta (Instagram, Facebook) без дисклеймера «… признана экстремистской …»
+  const meta = text.match(META_RE);
+  if (meta && !/признан\w*\s+экстремистск/i.test(text)) add('Общие недочеты', R_META, 'упоминание ' + meta[0]);
+  // книги: «18+», «21+» при «Признак 18» не «да»
+  const age = text.match(/(?<!\d)(18|21)\s*\+/);
+  const flag = attr(/признак\s*18/i);
+  const isBook = /книг/i.test(`${card.category} ${card.group}`);
+  if (age && isBook && !(flag && /^(да|true)/i.test(flag.value.trim()))) add('Общие недочеты', R_AGE, `«${age[0]}»`);
+  // однозначно запрещённые товары (раздел «Товар нельзя продавать на Ozon»), с исключениями своих разделов:
+  // модель их иногда пропускает (ашваганда в БАД — в одном прогоне нашла, в другом нет)
+  const where = `${card.category} ${card.group}`;
+  const forbidden = [
+    [/ашваганд|витани[яи] сонн|якорц\w* стелющ|tribulus|кава-кава|\bмухомор|amanita/i,
+     () => /бад|добавк|витамин|питани|продукт|напит|чай|аптек|спорт\w* питан/i.test(where) && !/лекарственное средство/i.test(where),
+     'Ашваганда и другие запрещенные растения'],
+    [/ртутн\w* термометр|термометр\w*[^.]{0,40}ртутн/i, () => true, 'Ртутные термометры'],
+    [/электронн\w* сигарет|\bвейп|\bvape\b|\bснюс|\bнасвай|никотинов\w* жидкост|одноразов\w* (под|электронк)/i,
+     () => !/для чистки|чехол|чехл|зарядн|пепельниц/i.test(text), 'Устройства для потребления никотиносодержащей продукции'],
+    [/электрошокер|электрошоков\w* устройств|искров\w* разрядник/i,
+     () => !/мухобойк|прикол|отпугив|электропастух|погонял|ошейник/i.test(text), 'Электрошокеры'],
+    [/\bкапкан/i, () => !/гуманн|проходн|кротолов|крысолов|мышелов|живолов/i.test(text), 'Капканы'],
+  ];
+  for (const [re, ok, rule] of forbidden) {
+    const hit = text.match(re);
+    if (hit && ok()) add('Общие недочеты', 'Товар нельзя продавать на Ozon', `«${hit[0]}» — раздел «${rule}»`);
+  }
+  // кальян в сборе: сам товар — кальян (не отдельная чаша, шахта, колба, мундштук)
+  if (/^кальян/i.test(nameText.trim()) || /кальян\w* в сборе/i.test(text)) {
+    add('Общие недочеты', 'Товар нельзя продавать на Ozon', '«кальян» — раздел «Кальяны в сборе»');
+  }
+  // критический бренд в названии/аннотации — подсказка (решает модель по смыслу)
+  const brandAttr = attr(/^бренд/i);
+  if (brandAttr && brandAttr.checkable) {
+    for (const b of criticalBrands(book)) {
+      const names = [b.latin, ...b.variants];
+      const hit = names.find((n) => new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9])${escapeRe(n)}($|[^A-Za-zА-Яа-яЁё0-9])`, 'i').test(text));
+      if (!hit || names.some((n) => lower(brandAttr.value).includes(lower(n)))) continue;
+      const near = text.match(new RegExp(`(для|совместим\\w*\\s+с|подходит\\s+(для|к)|к|на)\\s+${escapeRe(hit)}`, 'i'));
+      add('Бренд', R_BRAND, `критический бренд «${b.latin}» (${hit})${b.note ? ' — ' + b.note : ''}${near ? `; формулировка «${near[0]}» — вероятно, исключение` : ''}`, false);
+    }
+  }
+  return facts;
+}
+
+function factsText(facts) {
+  if (!facts.length) return '';
+  return '\nНАЙДЕНО СКРИПТОМ (точные совпадения, проверь и учти):\n'
+    + facts.map((f) => `• «${f.attribute}»: ${f.resolution} — ${f.evidence}`).join('\n');
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Скрипт после модели: решение приводится к правилам справочника
+const GENERIC = new Set(['если', 'карточк', 'товар', 'товара', 'указан', 'указано', 'такое', 'принима', 'допусти',
+  'это', 'есть', 'что', 'при', 'том', 'или', 'для', 'также', 'категори', 'исключе', 'пример', 'подлеж', 'отклон']);
+
+function sameResolution(a, b) {
+  const x = lower(a).replace(/[«»"'.]/g, ''); const y = lower(b).replace(/[«»"'.]/g, '');
+  return Boolean(x && y && (x === y || (x.length > 12 && y.includes(x)) || (y.length > 12 && x.includes(y))));
+}
+
+// исключение раздела, все значимые слова которого есть в карточке («Мухобойки с электрошоком»)
+function matchingException(book, verdict, cardTokens, cardText_) {
+  if (!book) return '';
+  const want = lower(verdict.section || verdict.resolution);
+  const section = book.sections.find((s) => want && lower(s.title).includes(want))
+    || book.sections.find((s) => want && want.includes(lower(s.title)) && s.title.length > 15);
+  if (!section) return '';
+  const at = section.text.search(/Исключени/i);
+  if (at < 0) return '';
+  for (const line of section.text.slice(at).split('\n').slice(1)) {
+    // основы — без повторов: «электрошоком, электростимуляцией» → одна основа «электро», не две
+    const words = [...new Set(tokens(line).filter((t) => !GENERIC.has(t)))];
+    if (!(words.length >= 2 && words.length <= 6 && words.every((w) => cardTokens.has(w)))) continue;
+    // слово в кавычках («Указание состояния: «Новое»») — буквально, не по основе: «как новые» — это не «Новое»
+    const quoted = [...line.matchAll(/«([^»]{2,40})»/g)].map((m) => lower(m[1]));
+    if (quoted.length && !quoted.every((q) => new RegExp(`(^|[^а-яa-z])${escapeRe(q)}($|[^а-яa-z])`, 'i').test(cardText_))) continue;
+    return line.trim();
+  }
+  return '';
+}
+
+function finalize(verdicts, card, book, resolutions, facts) {
+  const list = (verdicts && verdicts.list ? verdicts.list : []).map((v) => ({ ...v }));
+  const notes = [];
+  const byTitle = (t) => list.find((v) => lower(v.attribute) === lower(t));
+  const checkable = card.attributes.filter((a) => a.checkable && !a.video);
+  // 1. резолюция — на свой атрибут: «честная конкуренция» не у «Аннотации», а у «Общих недочетов»
+  for (const v of list.filter((x) => x.decision === 'отклонить' && x.resolution)) {
+    const owners = checkable.filter((a) => resolutionsFor(resolutions, a.title).some((r) => sameResolution(r, v.resolution)));
+    if (!owners.length || owners.some((a) => lower(a.title) === lower(v.attribute))) continue;
+    const target = owners[0].title;
+    const moved = { ...v, attribute: target, reason: v.reason };
+    Object.assign(v, { decision: 'принять', resolution: '', reason: `нарушение перенесено в «${target}»`, section: '' });
+    const existing = byTitle(target);
+    if (existing && existing.decision !== 'отклонить') Object.assign(existing, moved);
+    else if (!existing) list.push(moved);
+    notes.push(`«${moved.resolution}» перенесено на атрибут «${target}»`);
+  }
+  // 2. «ключевые слова» без признаков ключевых слов (скрипт их не нашёл, в объяснении о них ни слова) — снять
+  const keywordsFound = facts.some((f) => f.resolution === R_KEYWORDS);
+  for (const v of list) {
+    if (v.decision === 'отклонить' && sameResolution(v.resolution, R_KEYWORDS) && !keywordsFound
+        && !/ключев|хеште|хэште|#|тег|синоним|перечисл|поисков/i.test(v.reason)) {
+      Object.assign(v, { decision: 'принять', resolution: '', reason: 'ключевых слов нет (проверено скриптом)' });
+    }
+  }
+  // 2а. «честная конкуренция» без её признаков: в тексте это контакты, ссылки, акции, отзывы за деньги, маркетплейсы,
+  // сравнение с брендом, благотворительность, аукционы — скрипт их не нашёл, в объяснении их нет, про фото ни слова
+  // («Остерегайтесь подделок» модель принимала за нарушение) — «смотрите сами»
+  const honestFound = facts.some((f) => f.resolution === R_HONEST);
+  for (const v of list) {
+    if (v.decision === 'отклонить' && sameResolution(v.resolution, R_HONEST) && !honestFound
+        && !/фото|qr|телефон|ссылк|сайт|контакт|акци|скидк|процент|%|кешб|розыгрыш|благотвор|пожертв|краудфанд|аукцион|лотер|лучше|не хуже|конкурент|маркетплейс|торгов|\bwb\b|отзыв|балл|подписк|соцсет|ник/i.test(v.reason)) {
+      Object.assign(v, { decision: 'смотрите сами',
+                         reason: `${v.reason} — признаков «честной конкуренции» (контакты, ссылки, акции, маркетплейсы) скрипт не нашёл` });
+      notes.push('«честная конкуренция» без её признаков — проверьте');
+    }
+  }
+  // 2в. фото: нарушение с фото, у которого своя резолюция в «Общих недочетах», не дублируется «не имеет отношения»
+  // у атрибута фото: заглушка («Нет фото», эскиз) — «противоречит друг другу»; контакты, QR, логотип маркетплейса
+  // на фото — «честная конкуренция»
+  const R_CONTRA = 'Информация в карточке товара противоречит друг другу';
+  const general = card.attributes.find((a) => a.checkable && /^общие недочеты/i.test(a.title));
+  for (const v of list) {
+    if (v.decision !== 'отклонить' || !/^изображени/i.test(v.attribute)) continue;
+    let resolution = '';
+    if (/не имеет никакого отношения/i.test(v.resolution) && /заглушк|нет фото|в фотостуди|эскиз/i.test(v.reason)) resolution = R_CONTRA;
+    else if (/телефон|telegram|телеграм|контакт|qr|ссылк|сайт|wildberries|маркетплейс|логотип/i.test(v.reason)) resolution = R_HONEST;
+    if (!resolution || !general) continue;
+    const reason = v.reason;
+    Object.assign(v, { decision: 'принять', resolution: '', reason: `нарушение с фото — в «${general.title}»` });
+    if (!list.some((x) => x.decision === 'отклонить' && lower(x.attribute) === lower(general.title) && sameResolution(x.resolution, resolution))) {
+      const g = byTitle(general.title);
+      const add = { attribute: general.title, decision: 'отклонить', resolution, reason, section: resolution };
+      if (g && g.decision !== 'отклонить') Object.assign(g, add); else list.push(add);
+    }
+    notes.push(`нарушение с фото перенесено в «${general.title}»: ${resolution}`);
+  }
+  // 2г. бренд отклоняют только по таблице критических брендов: скрипт её проверил — бренда из таблицы в названии и
+  // аннотации нет (Flash Up модель приняла за критический бренд по списку энергетиков) — принять
+  const brandFound = facts.some((f) => f.resolution === R_BRAND);
+  if (criticalBrands(book).length) {
+    for (const v of list) {
+      if (v.decision === 'отклонить' && /^бренд/i.test(v.attribute) && sameResolution(v.resolution, R_BRAND) && !brandFound) {
+        Object.assign(v, { decision: 'принять', resolution: '',
+                           reason: 'бренда из таблицы критических брендов в названии и аннотации нет (проверено скриптом)' });
+        notes.push('отклонение бренда снято: в таблице критических брендов такого нет');
+      }
+    }
+  }
+  // 2д. главное фото «не имеет отношения к товару» — одно нарушение: «противоречие» в «Общих недочетах» о том же
+  // фото не дублировать (мотоцикл вместо ноутбука модель отклоняла дважды)
+  if (list.some((x) => x.decision === 'отклонить' && /^изображение$/i.test(x.attribute) && /не имеет никакого отношения/i.test(x.resolution))) {
+    for (const v of list) {
+      if (v.decision === 'отклонить' && /^общие недочеты/i.test(v.attribute) && sameResolution(v.resolution, R_CONTRA)
+          && /фото|изображен/i.test(v.reason) && !facts.some((f) => f.enforce && sameResolution(f.resolution, R_CONTRA))) {
+        Object.assign(v, { decision: 'принять', resolution: '', reason: 'то же нарушение — уже у «Изображение»' });
+      }
+    }
+  }
+  // 2б. книга и «ограниченная категория» по году (Букинистика, Антикварное издание): год смотрят только в атрибуте
+  // «Год выпуска»; его нет — «верим продавцу» (запись 23.11: «Руководство DKW 1943» без атрибута года)
+  const yearAttr = card.attributes.find((a) => /год\s+(выпуска|издания)/i.test(a.title) && /\d{4}/.test(a.value));
+  if (/книг/i.test(`${card.category} ${card.group}`) && !yearAttr) {
+    for (const v of list) {
+      if (v.decision === 'отклонить' && /ограниченной категории/i.test(v.resolution)
+          && /год|букинист|антиквар|19\d\d|20[01]\d/i.test(`${v.reason} ${v.section}`)) {
+        Object.assign(v, { decision: 'принять', resolution: '',
+                           reason: 'атрибута «Год выпуска» нет — по правилу год на книге не смотрят, верим продавцу' });
+        notes.push('«Букинистика» снята: нет атрибута «Год выпуска»');
+      }
+    }
+  }
+  // 3. исключение раздела подходит к карточке — «смотрите сами» вместо отклонения
+  const plain = lower([card.name, ...card.attributes.map((a) => a.value)].join(' '));
+  const cardTokens = new Set(tokens(plain));
+  for (const v of list.filter((x) => x.decision === 'отклонить')) {
+    if (facts.some((f) => f.enforce && f.attribute === v.attribute && sameResolution(f.resolution, v.resolution))) continue;
+    const exception = matchingException(book, v, cardTokens, plain);
+    if (exception) {
+      Object.assign(v, { decision: 'смотрите сами', reason: `${v.reason} — но в разделе есть исключение: «${exception}»` });
+      notes.push(`«${v.attribute}»: подходит исключение «${exception}» — проверьте`);
+    }
+  }
+  // 4. точные находки скрипта, пропущенные моделью, — в решение
+  for (const f of facts.filter((x) => x.enforce)) {
+    if (list.some((v) => v.decision === 'отклонить' && lower(v.attribute) === lower(f.attribute)
+                         && sameResolution(v.resolution, f.resolution))) continue;
+    const v = byTitle(f.attribute);
+    const add = { attribute: f.attribute, decision: 'отклонить', resolution: f.resolution,
+                  reason: `скрипт: ${f.evidence}`, section: f.resolution, script: true };
+    if (v && v.decision !== 'отклонить') Object.assign(v, add);
+    else list.push(add);
+    notes.push(`скрипт добавил: «${f.attribute}» — ${f.resolution} (${f.evidence})`);
+  }
+  const warnings = facts.filter((f) => !f.enforce).map((f) => `«${f.attribute}»: ${f.evidence} — проверьте`);
+  return { list, summary: verdicts && verdicts.summary ? verdicts.summary : '', notes, warnings };
+}
+
 if (typeof module !== 'undefined') {
   module.exports = { PROMPT, CARD_PROMPT, buildResolutions, resolutionsFor, cardText, cardQuery, excerptSkip, excerptPin,
-                     parseVerdicts };
+                     parseVerdicts, scanCard, factsText, finalize, criticalBrands };
 }
