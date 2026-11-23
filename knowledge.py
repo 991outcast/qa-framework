@@ -26,7 +26,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from config import KNOWLEDGE_DIR, KNOWLEDGE_LESSON_CHARS, KNOWLEDGE_PROMPT_CHARS
+from config import KNOWLEDGE_DIR, KNOWLEDGE_LESSON_CHARS, KNOWLEDGE_PROMPT_CHARS, PLATFORM, RULES_PROMPT_CHARS
 from models import PageState, normalize_text
 
 logger = logging.getLogger("twork.knowledge")
@@ -269,6 +269,18 @@ class KnowledgeBase:
     # ------------------------------------------------------------------
     # Для промпта
     # ------------------------------------------------------------------
+
+    def rules_text(self, state: Optional[PageState]) -> str:
+        """Выдержки из правил площадки (knowledge/_rules-<площадка>.json, `python main.py --rules файл.pdf`),
+        подходящие к этому заданию: поиск по тексту задания и вариантам ответа."""
+        from rules import load_rules
+
+        book = load_rules(self._dir, PLATFORM.key)
+        if book is None or state is None or RULES_PROMPT_CHARS <= 0:
+            return ""
+        query = "\n".join([state.pool_title, state.task_text]
+                          + [e.label() for e in state.visible_elements if not e.aux])
+        return book.excerpts(query, RULES_PROMPT_CHARS)
 
     def prompt_text(self, pool: Optional[PoolKnowledge], limit: int = KNOWLEDGE_PROMPT_CHARS) -> str:
         """Знания для запроса. Инструкция — сразу после правил пользователя и целиком (длинные

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Помощник модератора</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header>
+    <h1>Помощник модератора</h1>
+    <div id="status" class="muted">Загрузка…</div>
+  </header>
+
+  <section id="answer-box">
+    <h2>Ответ ИИ <span id="answer-meta" class="muted"></span></h2>
+    <div id="video-note" class="note" hidden>Видео — смотрите сами: помощник его не трогает и не оценивает.</div>
+    <div id="answer" class="answer muted">Ответ появится, когда откроется задание.</div>
+    <div id="verdicts"></div>
+    <button id="ask-btn" type="button">Спросить ИИ ещё раз</button>
+  </section>
+
+  <section>
+    <h2>Разделы справочника <span id="found-meta" class="muted"></span></h2>
+    <div id="sections"></div>
+  </section>
+
+  <section>
+    <h2>Свой вопрос по правилам</h2>
+    <textarea id="question" rows="3" placeholder="Например: можно ли продавать ашваганду? Или вставьте текст карточки"></textarea>
+    <button id="question-btn" type="button">Найти и спросить</button>
+  </section>
+
+  <details id="settings">
+    <summary>Настройки</summary>
+    <label>Правила — файл <code>knowledge/_rules-ozon.json</code> из папки агента
+      <input id="rules-file" type="file" accept=".json,application/json">
+    </label>
+    <div id="rules-info" class="muted"></div>
+    <label>Модель через
+      <select id="provider">
+        <option value="gemini">Gemini API — бесплатный ключ Google AI Studio</option>
+        <option value="openrouter">OpenRouter — платно, доли цента за ответ</option>
+      </select>
+    </label>
+    <label>Ключ API (хранится только в этом браузере)
+      <input id="key" type="password" autocomplete="off" spellcheck="false">
+    </label>
+    <label>Модель
+      <input id="model" type="text" spellcheck="false">
+    </label>
+    <label class="row"><input id="auto" type="checkbox"> Спрашивать ИИ сразу, как открылось задание</label>
+    <label>Фото карточки — модели
+      <select id="photos">
+        <option value="all">Все фото (точнее, дороже)</option>
+        <option value="main8">Главное и 8 дополнительных</option>
+        <option value="none">Без фото (только текст)</option>
+      </select>
+    </label>
+    <label>Символов правил в запросе
+      <input id="budget" type="number" min="2000" max="200000" step="1000">
+    </label>
+    <button id="save" type="button">Сохранить</button>
+    <span id="saved" class="muted"></span>
+  </details>
+
+  <script src="rules.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

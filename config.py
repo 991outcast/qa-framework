@@ -359,7 +359,7 @@ FINISH_BUTTON_TEXTS: tuple[str, ...] = _site_list(
 # доработку» …). Подстроки узкие: «смен» задело бы «Сменить категорию», «работу» —
 # стартовую «Начать работу».
 _DENY_COMMON = ("смену", "смены", "сессию", "сессии", "выйти", "выход", "logout", "аккаунт",
-                "завершить работу", "доработк")
+                "завершить работу", "закончить работу", "доработк")
 # площадка может добавить свои (Ozon: «Пропустить» — пропуски ограничены, агент отвечает сам)
 FINISH_DENY_SUBSTRINGS: tuple[str, ...] = _env_list(
     "FINISH_DENY_SUBSTRINGS", _DENY_COMMON + tuple(_site("EXTRA_DENY_SUBSTRINGS", ())),
@@ -424,6 +424,9 @@ KNOWLEDGE_PROMPT_CHARS: int = int(_env_default(
     "KNOWLEDGE_PROMPT_CHARS", str(_site("KNOWLEDGE_PROMPT_CHARS", 14000)),
     ("14000",) if PLATFORM.key != DEFAULT_PLATFORM else ()))
 KNOWLEDGE_LESSON_CHARS: int = int(os.getenv("KNOWLEDGE_LESSON_CHARS", "3500"))
+# Правила площадки из PDF (`python main.py --rules файл.pdf`): сколько символов разделов, подходящих к
+# заданию, добавлять в запрос (плюс названия всех разделов). 0 — не добавлять
+RULES_PROMPT_CHARS: int = int(os.getenv("RULES_PROMPT_CHARS", "24000"))
 
 # ---------------------------------------------------------------------------
 # Поиск в интернете (отдельная вкладка того же окна)

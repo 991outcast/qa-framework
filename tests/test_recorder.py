@@ -111,3 +111,15 @@ def test_login_page_is_not_recorded(tmp_path, monkeypatch):
     assert "999 123" not in everything and "999123" not in everything
     metas = [json.loads(m.read_text(encoding="utf-8")) for m in session.glob("*/meta.json")]
     assert metas and not any("sso." in m["page_url"] for m in metas)
+
+
+def test_secrets_in_urls_are_masked():
+    """Вход в модерацию Ozon — по ссылке с токеном сессии (moderation.ozon.ru/?token=…): в файлы записи,
+    архив «для отправки» и лог значение не попадает."""
+    from recorder import scrub
+
+    assert scrub("https://moderation.ozon.ru/?token=eyJhbGciOi.payload.sig&x=1") == \
+        "https://moderation.ozon.ru/?token=***&x=1"
+    assert scrub('{"url": "https://a.test/cb?code=123#access_token=abc"}') == \
+        '{"url": "https://a.test/cb?code=***#access_token=***"}'
+    assert scrub("https://task.ozon.ru/task/123?page=2") == "https://task.ozon.ru/task/123?page=2"

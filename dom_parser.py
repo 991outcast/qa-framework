@@ -972,10 +972,14 @@ _JS_SNAPSHOT = r"""
             }
         }
         const dur = Number.isFinite(m.duration) ? m.duration : 0;
+        // видео с картинкой (ролик карточки, видеообложка) — не запись звонка: его смотрит человек.
+        // <video> без картинки (звук в теге video) — как аудио
+        const mr = m.getBoundingClientRect();
+        const picture = tagOf(m) === 'video' && (m.videoWidth > 0 || mr.height >= 90);
         audios.push({
             n: k, uid, playUid, src, duration: dur, current: m.currentTime || 0,
             paused: !!m.paused, ended: !!m.ended || (dur > 0 && m.currentTime >= dur - 0.25),
-            kind: tagOf(m),
+            kind: tagOf(m), picture,
         });
     }
 
@@ -1389,13 +1393,17 @@ class DomParser:
         ]
         images = [MediaImage(**{k: v for k, v in img.items() if k in MediaImage.model_fields})
                   for img in raw.get("images") or []]
-        audios = [
+        media = [
             MediaAudio(n=int(a.get("n", 0)), uid=str(a.get("uid", "")), play_uid=str(a.get("playUid", "")),
                        src=str(a.get("src", "")), duration=float(a.get("duration") or 0),
                        current=float(a.get("current") or 0), paused=bool(a.get("paused", True)),
-                       ended=bool(a.get("ended", False)))
+                       ended=bool(a.get("ended", False)), video=bool(a.get("picture", False)))
             for a in raw.get("audios") or []
         ]
+        # видео агент и помощник не трогают (не включают, не доигрывают, не расшифровывают): его смотрит
+        # человек — в модерации «Принять/Отклонить» открываются только после просмотра до конца
+        audios = [a for a in media if not a.video]
+        videos = [a for a in media if a.video]
         reader = [str(line) for line in raw.get("reader") or []]
         dialog = [str(line) for line in raw.get("dialog") or []]
         popup = [str(line) for line in raw.get("popup") or []]
@@ -1440,6 +1448,7 @@ class DomParser:
             notices=notices,
             images=images,
             audios=audios,
+            videos=videos,
             headings=headings,
             pool_key=pool_key,
             pool_title=pool_title,
@@ -1852,6 +1861,8 @@ def _fmt_time(seconds: float) -> str:
 
 
 def audio_label(audio: MediaAudio) -> str:
+    if audio.video:
+        return f"[ВИДЕО {audio.n}: смотрит человек — по видео не решай, плеер не трогай]"
     if audio.ended:
         status = "прослушана до конца"
     elif audio.paused:
@@ -1889,7 +1900,7 @@ def render_page(state: PageState, *, limit: int = READER_MAX_CHARS) -> tuple[str
     shown_by_index = {e.index: e for e in shown}
     label_counts = Counter(normalize_text(e.text) for e in state.elements if e.text)
     images = {i.n: i for i in state.images}
-    audios = {a.n: a for a in state.audios}
+    audios = {a.n: a for a in state.audios + state.videos}
     placed: set[int] = set()
 
     def expand(lines: list[str]) -> list[str]:

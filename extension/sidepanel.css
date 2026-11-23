@@ -1,0 +1,40 @@
+:root {
+  --bg: #ffffff; --fg: #1d1d1f; --muted: #6e6e73; --line: #e2e2e6; --card: #f6f6f8;
+  --accent: #1f6feb; --ok: #1a7f37; --bad: #cf222e; --note: #fff4ce;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #18181b; --fg: #ececf1; --muted: #a1a1aa; --line: #2e2e33; --card: #222226;
+          --accent: #58a6ff; --ok: #3fb950; --bad: #f85149; --note: #3a3218; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 12px; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+       background: var(--bg); color: var(--fg); }
+h1 { font-size: 16px; margin: 0 0 2px; }
+h2 { font-size: 13px; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+section, details#settings { border-top: 1px solid var(--line); padding: 10px 0; }
+header { padding-bottom: 8px; }
+.muted { color: var(--muted); font-size: 12px; text-transform: none; letter-spacing: 0; }
+.answer { white-space: pre-wrap; background: var(--card); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+.answer.error { color: var(--bad); }
+.note { background: var(--note); border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; font-size: 13px; }
+details.rule { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
+details.rule summary { cursor: pointer; padding: 6px 8px; }
+details.rule .score { color: var(--muted); font-size: 11px; margin-left: 4px; }
+details.rule pre { white-space: pre-wrap; margin: 0; padding: 0 8px 8px; font: 13px/1.4 inherit; }
+label { display: block; margin: 8px 0; font-size: 13px; }
+label.row { display: flex; gap: 6px; align-items: center; }
+input[type=text], input[type=password], input[type=number], select, textarea {
+  width: 100%; margin-top: 3px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--fg); font: inherit; }
+button { padding: 6px 12px; border: 0; border-radius: 6px; background: var(--accent); color: #fff;
+         font: inherit; cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+code { font-size: 12px; }
+.verdict { border-left: 4px solid var(--line); background: var(--card); border-radius: 6px; padding: 6px 8px; margin-bottom: 6px; }
+.verdict.ok { border-left-color: var(--ok); }
+.verdict.bad { border-left-color: var(--bad); }
+.verdict.look { border-left-color: #bf8700; }
+.verdict-head { font-weight: 600; }
+.verdict.ok .verdict-head { color: var(--ok); }
+.verdict.bad .verdict-head { color: var(--bad); }
+.verdict-line { font-size: 13px; margin-top: 2px; }

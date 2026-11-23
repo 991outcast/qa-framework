@@ -1140,6 +1140,27 @@ class LLMConnector:
             self.usage.add(usage, model_price(model))
         return ((response.choices[0].message.content or "").strip() if response.choices else "") or None
 
+    async def answer_by_rules(self, question: str, rules: str, model: str = "") -> Optional[str]:
+        """Ответ по правилам площадки (`python main.py --ask`): текст карточки или вопрос человека и
+        выдержки из справочника — решение по каждому атрибуту со ссылкой на раздел."""
+        model = model or (self.models[0] if self.models else LLM_MODEL)
+        kwargs: dict[str, Any] = {
+            "model": model, "max_tokens": 4000, "temperature": 0.0,
+            "messages": [{"role": "system", "content": _RULES_PROMPT},
+                         {"role": "user", "content": rules + "\n\nКАРТОЧКА ИЛИ ВОПРОС:\n" + question}],
+        }
+        if self._openrouter:
+            kwargs["extra_body"] = {"usage": {"include": True}}
+        try:
+            response = await self._call(lambda: self._client.chat.completions.create(**kwargs))
+        except (openai.OpenAIError, LLMUnavailable) as exc:
+            logger.warning("Ответ по правилам моделью %s не получен: %s", model, _short_error(exc))
+            return None
+        usage = getattr(response, "usage", None)
+        if usage is not None:
+            self.usage.add(usage, model_price(model))
+        return ((response.choices[0].message.content or "").strip() if response.choices else "") or None
+
     async def _transcribe_by_listening(self, model: str, data: bytes, filename: str) -> Optional[str]:
         """Расшифровка моделью, которая слушает запись (Gemini): кроме слов, она отмечает гудки,
         автоответчик и синтезированный голос — для заданий «прослушайте звонок» это важно."""
@@ -1286,6 +1307,19 @@ _BRIEF_PROMPT = (
     "как решать правильно. Напиши 5–8 пунктов по-русски, каждый — одна строка, начинается с «• ». "
     "Только главное: что проверять и в каком порядке, частые ловушки, когда какой вариант ответа. "
     "Без вступления и без заключения."
+)
+_RULES_PROMPT = (
+    "Ты помогаешь модератору карточек товаров. Тебе даны выдержки из справочника правил площадки и карточка "
+    "(или вопрос). Решай ТОЛЬКО по правилам из выдержек; если подходящего запрета нет — атрибут верный "
+    "(принять). Ответ по-русски, коротко:\n"
+    "• по каждому атрибуту карточки, где есть нарушение: «ОТКЛОНИТЬ — <атрибут>: <точное название резолюции "
+    "или раздела>» и одна строка почему, с цитатой нарушения из карточки;\n"
+    "• остальные атрибуты — одной строкой «ПРИНЯТЬ: …»;\n"
+    "• если правило есть только в списке названий разделов, а его текста нет — скажи об этом и что проверить;\n"
+    "• если данных не хватает (нужно фото) — скажи, что именно посмотреть самому;\n"
+    "• видео и видеообложку не оценивай — их смотрит человек: напиши «Видео — смотрите сами».\n"
+    "Не придумывай правил и резолюций, которых нет в справочнике. На вопрос о правилах — ответь по выдержкам "
+    "и назови раздел."
 )
 _READ_DOC_PROMPT = (
     "Это инструкция к заданиям разметки. Перепиши её текст полностью и дословно, по порядку: заголовки, "

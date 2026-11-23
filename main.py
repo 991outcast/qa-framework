@@ -5,6 +5,9 @@
   python main.py --platform ozon …  — площадка на этот запуск (иначе — PLATFORM из .env)
   python main.py --record   — режим записи: вы решаете задания вручную, агент
                               сохраняет экраны и ваши действия (ключ API не нужен)
+  python main.py --rules файл.pdf  — запомнить правила площадки (справочник модератора и т. п.):
+                              помощник и агент берут из них разделы под каждое задание
+  python main.py --ask      — вопрос по правилам или текст карточки в терминале → ответ со ссылками
   python main.py --record --url https://profit.ozon.ru
                             — то же на другой площадке: запись нужна, чтобы
                               изучить её интерфейс и научить агента работать с ней
@@ -90,15 +93,26 @@ def parse_args() -> argparse.Namespace:
         help="площадка на этот запуск (вместо строки PLATFORM в .env)",
     )
     parser.add_argument(
+        "--rules", default=None, metavar="ФАЙЛ.pdf",
+        help="запомнить правила площадки из PDF: помощник и агент берут из них разделы под каждое задание",
+    )
+    parser.add_argument(
+        "--ask", nargs="?", const="", default=None, metavar="ТЕКСТ",
+        help="вопрос по правилам (или текст карточки) — ответ модели со ссылками на разделы; без текста — "
+             "вопросы по одному в терминале",
+    )
+    parser.add_argument(
         "--url", default=None,
         help="с --record: открыть другую площадку вместо TARGET_URL (например, https://profit.ozon.ru)",
     )
     args = parser.parse_args()
     if args.assist and args.record:
         parser.error("--assist и --record одновременно нельзя: оба открывают одно окно браузера")
+    if (args.rules or args.ask is not None) and (args.assist or args.record):
+        parser.error("--rules и --ask работают без браузера — запускайте их отдельно от --assist и --record")
     from config import PLATFORM
 
-    if not (args.assist or args.record) and not PLATFORM.agent_ready:
+    if not (args.assist or args.record or args.rules or args.ask is not None) and not PLATFORM.agent_ready:
         parser.error(f"на площадке {PLATFORM.title} агент сам задания пока не решает — запустите помощника: "
                      f"--assist --platform {PLATFORM.key}")
     if args.url and not args.record:
@@ -111,15 +125,21 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
+    if args.rules:
+        from rules import import_command
+
+        sys.exit(import_command(args.rules))
     try:
         from config import GEMINI_API_KEY
 
         # помощник с ключом Google AI Studio ходит в Gemini напрямую — ключ OpenRouter ему не нужен
-        validate_config(require_llm=not args.record and not (args.assist and GEMINI_API_KEY))
+        validate_config(require_llm=not args.record
+                        and not ((args.assist or args.ask is not None) and GEMINI_API_KEY))
     except ValueError as exc:
         logger.error("Конфигурация некорректна: %s", exc)
         sys.exit(2)
-    log_path = enable_file_log("record" if args.record else "assist" if args.assist else "agent")
+    log_path = (None if args.ask is not None
+                else enable_file_log("record" if args.record else "assist" if args.assist else "agent"))
     if log_path is not None:
         logger.info("Лог работы пишется в файл %s", log_path)
     try:
@@ -131,6 +151,10 @@ if __name__ == "__main__":
             from assistant import assist
 
             asyncio.run(assist())
+        elif args.ask is not None:
+            from rules import ask
+
+            asyncio.run(ask(args.ask))
         else:
             asyncio.run(main())
     except KeyboardInterrupt:

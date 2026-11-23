@@ -214,7 +214,9 @@ class Assistant:
 
     async def _ask(self, state: PageState) -> tuple[list[str], LLMDecision]:
         pool = self._knowledge.for_state(state)
-        context = DecisionContext(knowledge=self._knowledge.prompt_text(pool), model=self._model,
+        knowledge = "\n\n".join(filter(None, [self._knowledge.prompt_text(pool),
+                                              self._knowledge.rules_text(state)]))   # правила площадки из PDF
+        context = DecisionContext(knowledge=knowledge, model=self._model,
                                   step_in_task=1, steps_left=MAX_STEPS_PER_TASK)
         started = time.monotonic()
         decision = await self._llm.decide(state, context)
@@ -249,6 +251,8 @@ class Assistant:
             lines.append(f"Почему: {why}")
         lines.append(f"Уверенность: {round(decision.confidence * 100)}%"
                      + (" — проверьте сами" if decision.confidence < 0.7 else ""))
+        if state.videos:
+            lines.append("Видео — смотрите сами: помощник его не трогает и не оценивает.")
         return f"ИИ ({self._model.split('/')[-1]})", lines
 
     def _how_to(self, state: PageState, reason: str) -> tuple[str, list[str]]:

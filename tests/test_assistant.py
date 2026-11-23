@@ -292,3 +292,42 @@ def test_gemini_key_sends_requests_to_google_without_openrouter_fields(tmp_path,
     monkeypatch.setattr(openrouter_connector, "GEMINI_API_KEY", "test-gemini-key")
     helper = Assistant(browser=object(), knowledge=KnowledgeBase(str(tmp_path)))
     assert helper._llm.provider == "gemini" and not helper._model.startswith("google/")
+
+
+VIDEO_CARD = """<html><body><h2>Проверьте карточку</h2>
+<p>Название: Пример товара для теста</p>
+<div class="player"><video width="320" height="180" preload="none"></video><button title="Play">▶</button></div>
+<div><audio controls preload="none"></audio></div>
+<label><input type="radio" name="v" value="ok"> Принять</label>
+<label><input type="radio" name="v" value="no"> Отклонить</label>
+</body></html>"""
+
+
+def test_video_is_left_to_the_human():
+    """Видео в карточке (модерация Ozon: «Принять/Отклонить» открываются только после просмотра до конца)
+    агент и помощник не трогают: оно не попадает в записи (не расшифровывается и не доигрывается), в тексте
+    страницы — «[ВИДЕО n: смотрит человек]», плеер не запускается. Запись звонка — по-прежнему запись."""
+    from playwright.async_api import async_playwright
+
+    from assistant import not_text_reason
+    from dom_parser import DomParser, render_page
+    from tests.helpers import launch_options
+
+    async def scenario():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(**launch_options())
+            page = await browser.new_page(viewport={"width": 1280, "height": 900})
+            await page.set_content(VIDEO_CARD)
+            state = await DomParser(page.main_frame).parse(quiet=True)
+            played = await page.evaluate("() => { const v = document.querySelector('video'); "
+                                         "return [v.paused, v.currentTime]; }")
+            await browser.close()
+            return state, played
+
+    state, played = run(scenario())
+    assert len(state.videos) == 1 and len(state.audios) == 1 and state.videos[0].video
+    assert played == [True, 0]
+    text, _ = render_page(state)
+    assert "[ВИДЕО" in text and "смотрит человек" in text and "[АУДИО" in text
+    assert not_text_reason(state) == "в задании запись"                    # из-за записи звонка, не видео
+    assert not_text_reason(state.model_copy(update={"audios": []})) is None  # только видео — задание текстовое

@@ -246,7 +246,7 @@ def use_platform(monkeypatch, adapter, target_url: str) -> None:
             if hasattr(module, name):
                 monkeypatch.setattr(module, name, value)
         extra = tuple(adapter.settings.get("EXTRA_DENY_SUBSTRINGS", ()))
-        if extra and hasattr(module, "FINISH_DENY_SUBSTRINGS"):
+        if hasattr(module, "FINISH_DENY_SUBSTRINGS"):        # добавка прежней площадки не переносится
             monkeypatch.setattr(module, "FINISH_DENY_SUBSTRINGS", config._DENY_COMMON + extra)
     monkeypatch.setattr(browser_controller, "TARGET_URL", target_url)
 

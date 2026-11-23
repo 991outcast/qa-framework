@@ -740,19 +740,24 @@ def test_only_whole_pdfs_go_to_the_model_and_stubs_are_downloaded_again():
 def test_blind_exam_is_not_started(tmp_path, monkeypatch):
     """Лог пользователя: экзамены «Тип звонка» и «Фраза из диалога» агент решал без инструкции (PDF не
     прочитан) и без тренировки (новая папка — база знаний пуста) и провалил, а после проваленного
-    экзамена задания этого вида закрываются. Теперь такой экзамен агент не решает."""
+    экзамена задания этого вида закрываются. Теперь такой экзамен агент не решает. Лог 19.10: «Проверка фото
+    банкомата» — инструкция прочитана, тренировки не было, экзамен не сдан: без тренировки — тоже не решает."""
     import agent as agent_module
     from tests.helpers import run
 
     monkeypatch.setattr(agent_module, "FRAME_LOAD_WAIT", 0)
     agent, kb, pool = _ladder_agent(tmp_path, monkeypatch, models=("only",), title="Тип звонка")
     exam = PageState(reader=["#### Экзамен", "1 из 10 заданий", "### Определите тип звонка"])
-    assert run(agent._exam_gate(exam)) is False                     # инструкцию ещё не открывали
+    assert run(agent._exam_gate(exam)) is True                      # тренировки не было — нет
     pool.instruction_unread = True
+    agent._exam_block_logged.clear()
     assert run(agent._exam_gate(exam)) is True                      # вслепую — нет
     assert pool.path is not None and pool.path.exists()             # файл есть: инструкцию можно вписать
     kb.save_instruction(pool, "Разговорное имя / родственник? — ДА → ПОЛЕЗНЫЙ. " * 5, "вкладка https://x")
-    assert run(agent._exam_gate(exam)) is False                     # инструкция есть — можно
+    assert run(agent._exam_gate(exam)) is True                      # инструкция есть, тренировки нет — нет
+    pool.train_first_ok, pool.train_total = 3, 3
+    assert run(agent._exam_gate(exam)) is False                     # тренировка была (в прошлых заказах) — можно
+    pool.train_first_ok, pool.train_total = 0, 0
     pool.instruction, pool.instruction_unread = "", True
     agent._order_train = [9, 10]
     assert run(agent._exam_gate(exam)) is False                     # тренировка показала точность — можно
@@ -813,3 +818,31 @@ def test_order_summary_tells_how_long_the_key_limit_lasts():
     assert agent._budget_note(0.2) == "; на ключе OpenRouter осталось ≈ $10.00 — примерно на 50 таких заказов"
     assert agent._budget_note() == "; на ключе OpenRouter осталось ≈ $10.00"
     assert Agent(llm=_NoLLM())._budget_note(0.2) == ""                  # лимит ключа не задан
+
+
+def test_none_option_together_with_others_is_not_submitted():
+    """Лог 19.10 (T-Work, «Правильно ли определены характеристики товара»): после неверного ответа модель
+    кликами сняла одни флажки, а «Верных вариантов НЕТ.» осталось отмеченным — ушёл ответ «Категория
+    верная» + «Верных вариантов НЕТ». Такой ответ агент не отправляет, а объясняет модели."""
+    def box(i, text, selected):
+        return ParsedElement(index=i, uid=f"1-{i}", key=f"opt||{i}", text=text, kind=ElementKind.OPTION,
+                             choice_type="checkbox", is_selected=selected)
+
+    clash = PageState(elements=[box(0, 'Категория "Пример | Раздел" - ВЕРНАЯ.', True),
+                                box(1, 'Бренд "Нет верных" - ВЕРНЫЙ.', False),
+                                box(2, "Верных вариантов НЕТ.", True)])
+    none, others = Agent._none_with_others(clash)
+    assert none.text == "Верных вариантов НЕТ." and [e.index for e in others] == [0]
+    alone = PageState(elements=[box(0, 'Категория "Пример" - ВЕРНАЯ.', False), box(2, "Верных вариантов НЕТ.", True)])
+    assert Agent._none_with_others(alone) is None
+    data = PageState(elements=[box(0, 'Категория "Пример" - ВЕРНАЯ.', True), box(1, 'Бренд "Нет верных" - ВЕРНЫЙ.', True)])
+    assert Agent._none_with_others(data) is None                  # «нет» внутри данных товара — не тот вариант
+
+
+def test_twork_agent_does_not_go_to_training_by_itself():
+    """Страница «Клекс» без заданий: модель сама нажала «Перейти в обучение» (лог 19.10). Куда идти — выбирает
+    человек: на T-Work эта кнопка в стоп-списке."""
+    from dom_parser import is_denied_button
+
+    assert is_denied_button(ParsedElement(index=0, uid="1-0", key="b||1", text="Перейти в обучение",
+                                          kind=ElementKind.BUTTON))

@@ -268,6 +268,14 @@ def _short(exc: BaseException) -> str:
     return str(exc).strip().splitlines()[0][:160] if str(exc).strip() else exc.__class__.__name__
 
 
+
+# «нет верного ответа» среди флажков: вместе с другими отмеченными вариантами — противоречие
+_NONE_OPTION_RE = re.compile(
+    r"^(?:(?:верных|правильных|подходящих) (?:вариантов|ответов) нет|нет (?:верных|правильных|подходящих)"
+    r"(?: вариантов| ответов)?|ничего из (?:вышеперечисленного|перечисленного)|ни один из вариантов"
+    r"(?: не подходит)?)")
+
+
 def _label_matches(label: str, texts: tuple[str, ...]) -> bool:
     label = normalize_text(label)
     return any(label == t or label.startswith(t + " ") for t in texts)
@@ -877,16 +885,21 @@ class Agent:
             return False
         estimate = self._exam_estimate()
         pool = self._pool
-        if estimate is None and pool is not None and pool.instruction_unread and not pool.instruction.strip():
-            # ни инструкции, ни тренировки — экзамен вслепую; не сдан — задания этого вида закроются
+        trained = self._order_train[1] or (pool.train_total if pool is not None else 0)
+        if estimate is None and pool is not None and not trained:
+            # тренировки этого вида не было — точность модели неизвестна, а проваленный экзамен закрывает
+            # задания этого вида (лог 19.10: «Проверка фото банкомата» — экзамен сразу, с инструкцией, не сдан)
             if pool.key not in self._exam_block_logged:
                 self._exam_block_logged.add(pool.key)
+                unread = pool.instruction_unread and not pool.instruction.strip()
                 logger.warning(
-                    "⛔ ЭКЗАМЕН НЕ НАЧИНАЮ: инструкцию к этому виду заданий прочитать не удалось, а тренировки "
-                    "этого вида у агента нет — это решение вслепую, а после проваленного экзамена задания этого "
-                    "вида закрываются. Пройдите экзамен сами (агент не мешает и ждёт), сначала пройдите с агентом "
-                    "тренировку или впишите текст инструкции в раздел «Инструкция» файла %s",
-                    self._knowledge.ensure_file(pool) or "этого вида в папке knowledge")
+                    "⛔ ЭКЗАМЕН НЕ НАЧИНАЮ: тренировки этого вида заданий у агента не было%s — неизвестно, "
+                    "насколько верно модель его решает, а после проваленного экзамена задания этого вида "
+                    "закрываются. Пройдите экзамен сами (агент не мешает и ждёт), сначала пройдите с агентом "
+                    "тренировку или, чтобы агент решал экзамен и так, поставьте в .env EXAM_MIN_ACCURACY=0%s",
+                    ", и инструкцию прочитать не удалось" if unread else "",
+                    f" (текст инструкции можно вписать в раздел «Инструкция» файла "
+                    f"{self._knowledge.ensure_file(pool) or 'этого вида в папке knowledge'})" if unread else "")
             await asyncio.sleep(FRAME_LOAD_WAIT)
             return True
         if estimate is None or estimate[0] + 1e-9 >= EXAM_MIN_ACCURACY:
@@ -1095,7 +1108,8 @@ class Agent:
             images=images,
             image_notes=image_notes,
             transcripts=transcripts,
-            knowledge=self._knowledge.prompt_text(self._pool),
+            knowledge="\n\n".join(filter(None, [self._knowledge.prompt_text(self._pool),
+                                                   self._knowledge.rules_text(state)])),
             model=self._model_for(self._pool),
             research=research,
             plan=mem.plan,
@@ -1905,6 +1919,19 @@ class Agent:
             mem.submit_failures += 1
             return
 
+        clash = self._none_with_others(fresh)
+        if clash is not None:
+            none, others = clash
+            listed = ", ".join(f"«{e.label()}»" for e in others[:4])
+            logger.warning("Не отправляю: отмечены «%s» и другие варианты (%s) — так ответ противоречит сам себе",
+                           none.label(), listed)
+            mem.add(ActionType.SUBMIT, None, result=f"⛔ не отправлено: «{none.label()}» вместе с {listed}")
+            mem.batch_notes.append(
+                f"Сейчас отмечены одновременно «{none.label()}» и {listed} — ответ противоречит сам себе. Клик по "
+                f"отмеченному (✓ВЫБРАН) варианту СНИМАЕТ отметку: сними лишнее и отправь.")
+            mem.submit_failures += 1
+            return
+
         answer = self._describe_answer(state)
         mode = self._page_mode(state)
         if target is not None and target.kind == ElementKind.BUTTON and self._is_finish_button(target, strict=False):
@@ -2091,6 +2118,19 @@ class Agent:
             if e.kind == ElementKind.OPTION and e.choice_type == "radio" and e.group and e.container == "":
                 groups[e.group] = groups.get(e.group, False) or e.is_selected
         return sum(1 for answered in groups.values() if not answered)
+
+    @staticmethod
+    def _none_with_others(state: PageState) -> Optional[tuple[ParsedElement, list[ParsedElement]]]:
+        """Отмечены «Верных вариантов нет» и другие флажки того же вопроса (лог 19.10: после неверного ответа
+        модель сняла одни флажки кликом, а «НЕТ» осталось — ушло «Категория верная» + «Верных вариантов НЕТ»)."""
+        checked = [e for e in state.visible_elements if e.kind == ElementKind.OPTION and e.choice_type == "checkbox"
+                   and e.is_selected and e.container == ""]
+        for none in checked:
+            if _NONE_OPTION_RE.search(normalize_text(none.text)):
+                others = [e for e in checked if e is not none and e.group == none.group]
+                if others:
+                    return none, others
+        return None
 
     @staticmethod
     def _first_unanswered_options(state: PageState) -> list[ParsedElement]:

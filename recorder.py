@@ -247,6 +247,17 @@ def is_login_page(url: str) -> bool:
     return bool(_LOGIN_URL_RE.search(url or ""))
 
 
+# Секреты в адресах: вход по ссылке с токеном (moderation.ozon.ru/?token=…) — в файлы записи, архив и лог
+# значение не попадает, только «***»
+_SECRET_PARAM_RE = re.compile(
+    r"([?&#](?:access_token|id_token|refresh_token|token|code|ticket|session|sid|auth|key|signature|sig|password)=)"
+    r"[^&#\s\"'<>]+", re.IGNORECASE)
+
+
+def scrub(text: str) -> str:
+    return _SECRET_PARAM_RE.sub(r"\1***", text or "")
+
+
 class Recorder:
     """Наблюдатель: снимает каждый новый экран и действия человека, сам ничего не нажимает."""
 
@@ -402,7 +413,7 @@ class Recorder:
         active = await self._browser.visible_page(self._active_hint)
         if active is not None and active is not self._browser.page:
             self._browser.adopt_page(active)
-            logger.info("   🗂 записываю вкладку: %s", active.url[:120])
+            logger.info("   🗂 записываю вкладку: %s", scrub(active.url)[:120])
 
     async def _pick_frame(self) -> tuple[Frame, str]:
         """Фрейм задания по FRAME_KEYWORDS; если его нет — крупнейший видимый iframe
@@ -451,16 +462,16 @@ class Recorder:
             html = await frame.content()
         except PlaywrightError as exc:
             html = f"<!-- HTML недоступен: {exc} -->"
-        (folder / "frame.html").write_text(html, encoding="utf-8")
+        (folder / "frame.html").write_text(scrub(html), encoding="utf-8")
         try:
             await page.screenshot(path=str(folder / "screen.jpg"), type="jpeg", quality=70, timeout=5_000)
         except PlaywrightError as exc:
             logger.debug("Скриншот не сохранён: %s", exc)
         (folder / "llm_view.txt").write_text(
-            LLMConnector.build_user_message(state, DecisionContext()), encoding="utf-8",
+            scrub(LLMConnector.build_user_message(state, DecisionContext())), encoding="utf-8",
         )
         await self._save_components(page, frame, folder)
-        (folder / "state.json").write_text(state.model_dump_json(indent=1), encoding="utf-8")
+        (folder / "state.json").write_text(scrub(state.model_dump_json(indent=1)), encoding="utf-8")
 
         frames = []
         for f in page.frames:
@@ -510,7 +521,7 @@ class Recorder:
                     html = await f.content()
                     if len(html) <= _MAX_FRAME_HTML:
                         (folder / "frames").mkdir(exist_ok=True)
-                        (folder / "frames" / f"{child:02d}.html").write_text(html, encoding="utf-8")
+                        (folder / "frames" / f"{child:02d}.html").write_text(scrub(html), encoding="utf-8")
                         entry["html"] = f"frames/{child:02d}.html"
                 except PlaywrightError as exc:
                     entry.setdefault("error", str(exc)[:200])
@@ -617,8 +628,8 @@ class Recorder:
             self._background.add(task)
             task.add_done_callback(self._background.discard)
         with (self._session_dir / "navigation.jsonl").open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-        logger.info("   🌐 %s: %s", "новая вкладка" if kind == "new_tab" else "переход", url[:120])
+            fh.write(scrub(json.dumps(record, ensure_ascii=False)) + "\n")
+        logger.info("   🌐 %s: %s", "новая вкладка" if kind == "new_tab" else "переход", scrub(url)[:120])
 
     @staticmethod
     async def _shoot_external(page: Page, path: Path) -> None:
@@ -632,7 +643,7 @@ class Recorder:
 
     @staticmethod
     def _write_json(path: Path, data: Any) -> None:
-        path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        path.write_text(scrub(json.dumps(data, ensure_ascii=False, indent=1)), encoding="utf-8")
 
 
 async def record(url: Optional[str] = None) -> list[Path]:

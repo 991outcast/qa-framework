@@ -275,8 +275,8 @@ const SCENARIOS = {
       }),
     }],
   },
-  quiz: {
-    mode: 'Экзамен', title: 'Выполните задание',
+  quiz: {     // обычное задание тренировки (экзамен — в сценарии cleaning)
+    mode: 'Тренировка', title: 'Выполните задание',
     tasks: [{
       render: () => {
         const q2 = radios([{ text: 'Да' }, { text: 'Нет' }]);

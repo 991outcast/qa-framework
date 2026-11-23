@@ -257,6 +257,7 @@ class MediaAudio(BaseModel):
     current:  float = Field(0.0)
     paused:   bool  = Field(True)
     ended:    bool  = Field(False)
+    video:    bool  = Field(False, description="Видео с картинкой: его смотрит человек, агент не трогает")
 
 
 class PageState(BaseModel):
@@ -288,6 +289,7 @@ class PageState(BaseModel):
     notices:         list[Notice]        = Field(default_factory=list)
     images:          list[MediaImage]    = Field(default_factory=list)
     audios:          list[MediaAudio]    = Field(default_factory=list)
+    videos:          list[MediaAudio]    = Field(default_factory=list, description="Видео — смотрит человек")
     headings:        list[str]           = Field(default_factory=list)
     pool_key:        str                 = Field("", description="Вид задания (структура формы без данных)")
     pool_title:      str                 = Field("", description="Название вида задания для файла знаний")
