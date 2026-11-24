@@ -164,6 +164,14 @@ async function post(body, provider) {
       keyIndex = (keyIndex + 1) % keys.length;      // лимит ключа — сразу с запасным
       return once();
     }
+    if (res.status === 503) {                       // Gemini «high demand» — перегрузка на секунды: ещё две попытки
+      for (const wait of [5000, 10000]) {
+        await new Promise((ok) => setTimeout(ok, wait));
+        const again = await once();
+        if (again.status !== 503) return again;
+      }
+      return once();
+    }
     if (res.status < 500) return res;
   } catch (e) {
     if (e.name === 'AbortError') throw e;
@@ -177,6 +185,7 @@ function explain(status, message) {
   if (status === 403) return 'Сервис не пускает запрос (403). Из России нужен VPN в браузере.';
   if (status === 429) return 'Лимит запросов исчерпан (429) — подождите минуту или смените модель.';
   if (status === 402) return 'На балансе OpenRouter нет денег (402).';
+  if (status === 503) return 'Сервис модели перегружен (503) — через несколько секунд нажмите «Спросить ИИ ещё раз».';
   return `Ошибка ${status}: ${message.slice(0, 300)}`;
 }
 
@@ -215,7 +224,7 @@ async function ask(t, question = '') {
         content.push({ type: 'text', text: `ФОТО ${i + 1} — ${photos[i].label}` + (url ? '' : ' (не загрузилось)') });
         if (url) content.push({ type: 'image_url', image_url: { url } });
       });
-      body = { model, temperature: 0, max_tokens: 3000, response_format: { type: 'json_object' },
+      body = { model, temperature: 0, max_tokens: 6000, response_format: { type: 'json_object' },
                messages: [{ role: 'system', content: CARD_PROMPT }, { role: 'user', content }] };
     } else {
       const card = (question || t.text).slice(0, CARD_CHARS);
@@ -240,7 +249,7 @@ async function ask(t, question = '') {
     const content = (data.choices && data.choices[0] && data.choices[0].message.content || '').trim();
     const result = { text: content || 'Модель вернула пустой ответ.', model, photos: photos.length,
                      verdicts: t.card && !question
-                       ? finalize(parseVerdicts(content), t.card, book, resolutionsByAttr, facts) : null,
+                       ? finalize(parseVerdicts(content), t.card, book, resolutionsByAttr, facts, photos.map((p) => p.label)) : null,
                      seconds: (performance.now() - started) / 1000,
                      cost: data.usage && typeof data.usage.cost === 'number' ? data.usage.cost : null };
     answers.set(key, result);

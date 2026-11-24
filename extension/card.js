@@ -53,7 +53,12 @@ const CARD_PROMPT = 'Ты помогаешь модератору карточе
   + '«Бренд»; у «Аннотации» по справочнику — ключевые слова; а сам атрибут с текстом принимай. Видео и видеообложку '
   + 'не оценивай: decision «смотрите сами». Рич-контент '
   + 'без текста и фото (не открыт) — «смотрите сами» и попроси открыть и пролистать.\n'
-  + 'Ответ — только JSON: {"attributes": [{"name": "<название атрибута как в карточке>", "decision": '
+  + 'Сначала опиши КАЖДОЕ фото в поле photos (даже если фото много): все надписи на нём дословно, включая мелкие, '
+  + 'водяные знаки и слова со звёздочками, и что на нём видно — товар; QR-код; логотипы (чьи); люди и что делают; '
+  + 'сигареты, курение, алкоголь (даже нарисованные, на картине, на заднем плане); оружие; обнажённость; заглушка '
+  + 'вместо товара («нет фото», силуэт); иероглифы — крупные посередине или мелкие в углу. Пиши только то, что есть, — чего нет, не перечисляй. Потом решай по атрибутам.\n'
+  + 'Ответ — только JSON: {"photos": [{"n": <номер ФОТО>, "text": "<надписи дословно или пусто>", "seen": "<что '
+  + 'видно>"}], "attributes": [{"name": "<название атрибута как в карточке>", "decision": '
   + '"принять" | "отклонить" | "смотрите сами", "resolution": "<для отклонить — точная резолюция, иначе пусто>", '
   + '"reason": "<коротко почему, с цитатой из карточки или номером фото>", "section": "<раздел справочника>"}], '
   + '"summary": "<одна строка итога>"}. Все тексты — по-русски.';
@@ -171,7 +176,9 @@ function parseVerdicts(content) {
       attribute: String(a.name || ''), decision: lower(a.decision), resolution: String(a.resolution || ''),
       reason: String(a.reason || ''), section: String(a.section || ''),
     })).filter((a) => a.attribute);
-    return { list, summary: String(data.summary || '') };
+    const photos = (Array.isArray(data.photos) ? data.photos : []).map((ph) => ({
+      n: Number(ph.n) || 0, text: String(ph.text || ''), seen: String(ph.seen || ph.objects || '') })).filter((ph) => ph.n);
+    return { list, summary: String(data.summary || ''), photos };
   } catch (e) {
     return null;
   }
@@ -290,6 +297,76 @@ function scanCard(card, book) {
   return facts;
 }
 
+// Опись фото от модели (надписи дословно, что видно) → точные находки, тем же способом, что текст карточки:
+// модель часто видит QR, «Скидка 50%», мат или сигарету в описи, но не отклоняет. labels — подписи фото в порядке
+// запроса («Изображение», «Изображения», «… (старое)»); старое фото атрибута «Изменено» не проверяется
+const SWEAR_RE = /(^|[^а-яё])(х[у*@.]й|х[у*]е[вснт]|п[и*]зд|[её*]б[ау*]н|[её]бат|[её]бл[аои]|бл[я*](д|ть)|муд[ао]к|залуп|пид[ао]р|гандон)/i;
+const SALE_RE = /скидк\w*[^.!\n]{0,20}\d+\s*%|\d+\s*%[^.!\n]{0,12}скидк|(^|\s)[-−–]\s?\d{1,2}\s?%|промокод|купон|распродаж|\bsale\b|кешб[эе]к/i;
+const TOBACCO_RE = /сигарет|сигар[аыуе]?(?![а-яё])|курит|курящ|курени|курильщ|табак|табач|вейп|кальян|самокрутк|айкос|iqos|алкогол|бутылк\w* (вина|пива|водки|коньяка|виски|шампанского)/i;
+const PLACEHOLDER_RE = /заглушк|нет фото|фото отсутствует|изображение отсутствует|no (image|photo)|фото скоро|изображение появится/i;
+function photoFacts(photos, labels, card) {
+  const facts = [];
+  if (!photos || !photos.length || !labels || !labels.length) return facts;
+  const add = (attribute, resolution, evidence) => {
+    if (!facts.some((f) => f.attribute === attribute && f.resolution === resolution)) facts.push({ attribute, resolution, evidence, enforce: true, photo: true });
+  };
+  const titleOf = (label) => { const m = String(label).match(/«([^»]+)»/); return m ? m[1] : ''; };
+  const general = card.attributes.find((a) => a.checkable && /^общие недочеты/i.test(a.title));
+  const flag = card.attributes.find((a) => /признак\s*18/i.test(a.title));
+  const adult = (flag && /^(да|true)/i.test(String(flag.value).trim()))
+    || /взросл|эротическ|алкогол|пиротехн|книг|журнал|фильм|винн\w* шкаф|игрушк\w* для (животн|собак|кошек)/i.test(`${card.category} ${card.group}`);
+  for (const ph of photos) {
+    const label = labels[ph.n - 1];
+    if (!label || /старое/i.test(label)) continue;
+    const title = titleOf(label);
+    const attr = card.attributes.find((a) => a.checkable && !a.video && lower(a.title) === lower(title));
+    if (!attr) continue;
+    const text = ph.text;
+    // в описи «сигарет нет», «QR-кода не видно» — не находка: части с отрицанием отбрасываются
+    const seen = ph.seen.split(/[;,.\n]/).filter((s) => !/(^|[^а-яё])(нет|не видно|не обнаружен[а-яё]*|отсутству[а-яё]*|без|не изображ[а-яё]*)([^а-яё]|$)/i.test(s)).join("; ");
+    const all = `${text}\n${ph.seen}`; const present = `${text}\n${seen}`;
+    const tag = `ФОТО ${ph.n}`;
+    if (general) {
+      const phones = [...text.matchAll(PHONE_RE)].filter((m) => m[1] !== '800').map((m) => m[0].trim());
+      const urls = (text.replace(EMAIL_RE, '').match(URL_RE) || []).filter((u) => !OZON_LINK_RE.test(u));
+      const contacts = [...phones, ...(text.match(EMAIL_RE) || []).filter((e) => !OZON_LINK_RE.test(e)),
+                        ...(text.replace(EMAIL_RE, '').match(NICK_RE) || []).map((n) => n.trim()), ...urls];
+      const messenger = present.match(MESSENGER_RE);
+      if (messenger) contacts.push(messenger[0]);
+      if (contacts.length) add(general.title, R_HONEST, `${tag}: контакты/ссылки — ${contacts.slice(0, 3).join(', ')}`);
+      if (/qr|кьюар/i.test(present)) add(general.title, R_HONEST, `${tag}: QR-код`);
+      const market = present.match(MARKETPLACE_RE);
+      if (market) add(general.title, R_HONEST, `${tag}: маркетплейс — ${market[0]}`);
+      const sale = text.match(SALE_RE);
+      if (sale) add(general.title, R_HONEST, `${tag}: акция — «${sale[0].trim()}»`);
+      const meta = present.match(META_RE);
+      if (meta && !/признан\w*\s+экстремистск/i.test(text)) add(general.title, R_META, `${tag}: ${meta[0]}`);
+      if (/^изображение$/i.test(attr.title) && PLACEHOLDER_RE.test(all)) {
+        add(general.title, 'Информация в карточке товара противоречит друг другу', `${tag}: заглушка вместо товара`);
+      }
+    }
+    const main = /^изображение$/i.test(attr.title);
+    const extra = /^изображения$/i.test(attr.title);
+    if (!main && !extra) continue;
+    const swear = text.match(SWEAR_RE) || seen.match(/нецензурн|(^|[^а-яё])мат([^а-яё]|$)|матерн/i);
+    if (swear && !adult) {
+      add(attr.title, main ? 'На главном фото есть нецензурная лексика без указания признака «18»'
+                           : 'На дополнительном фото есть нецензурная лексика без указания признака «18»', `${tag}: «${swear[0].trim()}»`);
+    }
+    // иероглифы на главном фото: отклоняем крупные, посередине; мелкие в углу — принимаем (раздел «Иероглифы на главном фото»)
+    if (main && /иероглиф|фарси|китайск\S* (надпис|текст)/i.test(`${seen} ${ph.seen}`) && /крупн|посередин|в центре|по центру|значительн|больш|половин|на всё фото|во всё фото/i.test(seen)
+        && !/мелк|небольш|маленьк|в углу|внизу|вверху|не бросает/i.test(ph.seen)) {
+      add(attr.title, 'На главном фото товара есть иероглифы, занимающие значительную часть изображения', `${tag}: крупные иероглифы`);
+    }
+    const smoke = seen.match(TOBACCO_RE);
+    if (smoke && !adult && !/курить запрещено|не курить|место (для )?курения/i.test(all)) {
+      add(attr.title, main ? 'На главном фото изображена алкогольная или табачная продукция'
+                           : 'На дополнительном фото изображена алкогольная или табачная продукция', `${tag}: ${smoke[0]}`);
+    }
+  }
+  return facts;
+}
+
 function factsText(facts) {
   if (!facts.length) return '';
   return '\nНАЙДЕНО СКРИПТОМ (точные совпадения, проверь и учти):\n'
@@ -327,9 +404,12 @@ function matchingException(book, verdict, cardTokens, cardText_) {
   return '';
 }
 
-function finalize(verdicts, card, book, resolutions, facts) {
+function finalize(verdicts, card, book, resolutions, facts, labels) {
   const list = (verdicts && verdicts.list ? verdicts.list : []).map((v) => ({ ...v }));
   const notes = [];
+  facts = [...(facts || []), ...photoFacts(verdicts && verdicts.photos, labels, card)
+    .filter((f) => !resolutions || !resolutions.size || resolutionsFor(resolutions, f.attribute).some((r) => sameResolution(r, f.resolution))
+                   || !resolutionsFor(resolutions, f.attribute).length)];
   const byTitle = (t) => list.find((v) => lower(v.attribute) === lower(t));
   const checkable = card.attributes.filter((a) => a.checkable && !a.video);
   // 1. резолюция — на свой атрибут: «честная конкуренция» не у «Аннотации», а у «Общих недочетов»
@@ -372,7 +452,7 @@ function finalize(verdicts, card, book, resolutions, facts) {
   for (const v of list) {
     if (v.decision !== 'отклонить' || !/^изображени/i.test(v.attribute)) continue;
     let resolution = '';
-    if (/не имеет никакого отношения/i.test(v.resolution) && /заглушк|нет фото|в фотостуди|эскиз/i.test(v.reason)) resolution = R_CONTRA;
+    if (/заглушк|нет фото|в фотостуди|эскиз/i.test(v.reason) && !/нецензурн|алкогол|табач/i.test(v.resolution)) resolution = R_CONTRA;   // заглушка — какой бы резолюцией модель её ни назвала
     else if (/instagram|инстаграм|facebook|фейсбук/i.test(v.reason)) resolution = R_META;
     else if (/телефон|telegram|телеграм|контакт|qr|ссылк|сайт|wildberries|маркетплейс|логотип/i.test(v.reason)) resolution = R_HONEST;
     if (!resolution || !general) continue;
@@ -421,7 +501,7 @@ function finalize(verdicts, card, book, resolutions, facts) {
   // 2и. Instagram/Facebook без контактов — не «честная конкуренция», а упоминание организаций Meta
   for (const v of list) {
     if (v.decision === 'отклонить' && sameResolution(v.resolution, R_HONEST) && /instagram|инстаграм|facebook|фейсбук/i.test(v.reason)
-        && !/телефон|@|ссылк|сайт|http|www|qr|скидк|акци|wildberries|маркетплейс/i.test(v.reason)
+        && !/телефон|\+7|\d{3}[\s-]\d{2}|@|сайт|http|www|qr|скидк|акци|wildberries|маркетплейс/i.test(v.reason)
         && !facts.some((f) => f.enforce && f.resolution === R_HONEST)) {
       v.resolution = R_META;
       v.section = R_META;
@@ -457,9 +537,30 @@ function finalize(verdicts, card, book, resolutions, facts) {
       }
     }
   }
+  // 2е'. «не создана новая карточка» — когда на новом главном фото товар ДРУГОГО типа (перчатки вместо рюкзака). В описи
+  // нового фото тот же тип товара, что в названии (другой набор для маникюра) — «смотрите сами» (запись 23.11: принято)
+  const newIdx = (labels || []).findIndex((l) => /«изображение»/i.test(l) && /новое/i.test(l));
+  const newPhoto = newIdx >= 0 && verdicts && (verdicts.photos || []).find((ph) => ph.n === newIdx + 1);
+  const NAME_GENERIC = /^(набор|комплект|комплек|товар|издели|новый|новая|новое|подарочн|оригинал|универс|большой|малый)/;
+  const typeWord = tokens(lower(card.name || '')).find((w) => w.length >= 4 && !NAME_GENERIC.test(w) && !/^\d/.test(w));
+  if (newPhoto && typeWord) {
+    const stem = typeWord.slice(0, Math.max(4, Math.min(6, typeWord.length - 2)));
+    // что за товар на фото — первая часть описи («набор для маникюра: лампа…»), не всё описание («перчатки, рядом
+    // рюкзак»); модель сама пишет «перчатки, в то время как продаётся рюкзак» — товар другой, решение не трогать
+    const product = lower(String(newPhoto.seen).split(/[;,.:—(?!\n]/)[0]);
+    for (const v of list) {
+      if (v.decision === 'отклонить' && /не была создана новая карточка/i.test(v.resolution) && product.includes(stem)
+          && !new RegExp(`(в то время как|вместо|а не)[^.;]{0,40}${stem}`, 'i').test(lower(v.reason))) {
+        Object.assign(v, { decision: 'смотрите сами',
+                           reason: `${v.reason} — но на новом фото, по описи, тот же тип товара («${typeWord}»): новая карточка нужна, только если товар другой` });
+        notes.push('новое главное фото — тот же тип товара: проверьте сами');
+      }
+    }
+  }
   // 2д. главное фото «не имеет отношения к товару» — одно нарушение: «противоречие» в «Общих недочетах» о том же
   // фото не дублировать (мотоцикл вместо ноутбука модель отклоняла дважды)
-  if (list.some((x) => x.decision === 'отклонить' && /^изображение$/i.test(x.attribute) && /не имеет никакого отношения/i.test(x.resolution))) {
+  if (list.some((x) => x.decision === 'отклонить' && /^изображение$/i.test(x.attribute)
+                       && /не имеет никакого отношения|не была создана новая карточка/i.test(x.resolution))) {
     for (const v of list) {
       if (v.decision === 'отклонить' && /^общие недочеты/i.test(v.attribute) && sameResolution(v.resolution, R_CONTRA)
           && /фото|изображен/i.test(v.reason) && !facts.some((f) => f.enforce && sameResolution(f.resolution, R_CONTRA))) {
@@ -502,11 +603,21 @@ function finalize(verdicts, card, book, resolutions, facts) {
     else list.push(add);
     notes.push(`скрипт добавил: «${f.attribute}» — ${f.resolution} (${f.evidence})`);
   }
+  // 5. одно нарушение — одна запись: одинаковые отклонения (атрибут и резолюция) после переносов — убрать повторы
+  const seenRejects = new Set();
+  for (let i = 0; i < list.length; i++) {
+    const v = list[i];
+    if (v.decision !== 'отклонить') continue;
+    const key = lower(v.attribute) + '|' + lower(v.resolution);
+    if (seenRejects.has(key)) { list.splice(i--, 1); continue; }
+    seenRejects.add(key);
+  }
   const warnings = facts.filter((f) => !f.enforce).map((f) => `«${f.attribute}»: ${f.evidence} — проверьте`);
-  return { list, summary: verdicts && verdicts.summary ? verdicts.summary : '', notes, warnings };
+  return { list, summary: verdicts && verdicts.summary ? verdicts.summary : '', notes, warnings,
+           photos: (verdicts && verdicts.photos) || [] };
 }
 
 if (typeof module !== 'undefined') {
   module.exports = { PROMPT, CARD_PROMPT, buildResolutions, resolutionsFor, cardText, cardQuery, excerptSkip, excerptPin,
-                     parseVerdicts, scanCard, factsText, finalize, criticalBrands };
+                     parseVerdicts, scanCard, factsText, finalize, criticalBrands, photoFacts };
 }

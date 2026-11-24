@@ -98,7 +98,7 @@ async function ask(item, book, resolutions, opts) {
     content.push({ type: 'text', text: `ФОТО ${i + 1} — ${p.label}` + (url ? '' : ' (не загрузилось)') });
     if (url) content.push({ type: 'image_url', image_url: { url } });
   }
-  const body = { model: opts.model, temperature: 0, max_tokens: 3000, response_format: { type: 'json_object' },
+  const body = { model: opts.model, temperature: 0, max_tokens: 6000, response_format: { type: 'json_object' },
                  messages: [{ role: 'system', content: C.CARD_PROMPT }, { role: 'user', content }] };
   if (opts.provider === 'openrouter') {
     body.usage = { include: true };
@@ -116,6 +116,8 @@ async function ask(item, book, resolutions, opts) {
           await new Promise((ok) => setTimeout(ok, 30000)); continue;
         }
         if (r.status < 500 || attempt >= 3) return r;
+        // 503 «high demand» у Gemini — перегрузка на минуты: ждать дольше (15, 30, 45 с)
+        if (r.status === 503) { await new Promise((ok) => setTimeout(ok, 15000 * (attempt + 1))); continue; }
       } catch (e) {
         if (attempt >= 3) throw e;
       }
@@ -127,7 +129,7 @@ async function ask(item, book, resolutions, opts) {
   if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
   const reply = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
-  return { verdicts: C.finalize(C.parseVerdicts(reply), item.card, book, resolutions, facts),
+  return { verdicts: C.finalize(C.parseVerdicts(reply), item.card, book, resolutions, facts, photos.map((p) => p.label)),
            cost: data.usage && data.usage.cost || 0,
            tokens: data.usage ? (data.usage.prompt_tokens || 0) + (data.usage.completion_tokens || 0) : 0 };
 }
@@ -176,6 +178,9 @@ async function main() {
     if (!r.s.ok && r.verdicts) {          // почему модель так решила
       for (const v of r.verdicts.list.filter((x) => x.decision === 'отклонить' || x.reason)) {
         console.log(`      ${v.attribute} → ${v.decision}: ${String(v.reason).slice(0, 160)}`);
+      }
+      for (const ph of r.verdicts.photos || []) {   // опись фото — что модель увидела
+        console.log(`      ФОТО ${ph.n}: «${String(ph.text).slice(0, 60)}» / ${String(ph.seen).slice(0, 120)}`);
       }
     }
   }

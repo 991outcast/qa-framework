@@ -498,6 +498,51 @@ def test_placeholder_photo_and_instagram_get_their_own_resolutions(tmp_path):
     assert out["phone"] == ["Общие недочеты: " + H]
 
 
+@pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")
+def test_photo_inventory_becomes_exact_findings(tmp_path):
+    """Модель сначала описывает каждое фото (надписи дословно, что видно), скрипт решает по описи: QR, акция, мат,
+    Instagram, маркетплейс, заглушка, курение на картине. Ловушки молчат: отрицания в описи («сигарет нет»), подарок,
+    водяной знак магазина, автомат (не «мат»), «Курить запрещено», старое фото атрибута «Изменено», книга."""
+    card = {"name": "Рюкзак", "category": "Рюкзак", "group": "Галантерея", "badges": [], "attributes": [
+        {"title": t, "checkable": True, "images": ["a"]} for t in ("Изображение", "Изображения", "Общие недочеты")]}
+    cases = {
+        "qr": [2, "Сканируй QR", "рюкзак; QR-код в углу"], "sale": [2, "СКИДКА 50%", "рюкзак"],
+        "swear": [2, "Х*Й ПРОЙДЁШЬ", "баннер"], "insta": [2, "Мы в Instagram!", "рюкзак"],
+        "wb": [2, "", "логотип Wildberries"], "stub": [1, "НЕТ ФОТО", "серый фон"],
+        "smoke": [1, "", "картина: мужчина курит сигарету"],
+        "neg": [1, "", "рюкзак; QR-кода нет; сигарет и алкоголя нет"], "gift": [2, "Маска для лица — в подарок!", "набор"],
+        "mark": [1, "RYUKZAKI SHOP", "водяной знак магазина"], "gun": [2, "", "человек держит автомат"],
+        "sign": [2, "Курить запрещено", "табличка с перечёркнутой сигаретой"], "size": [2, "Объём 20 л, 45×30 см", "рюкзак"],
+        "cjk": [1, "防水背包", "рюкзак; крупные иероглифы посередине"], "cjk_small": [1, "防水", "рюкзак; мелкие иероглифы в углу"],
+    }
+    script = tmp_path / "inv.js"
+    script.write_text(chr(10).join([
+        "const C = require(" + json.dumps(str(EXT / "card.js")) + ");",
+        "const card = " + json.dumps(card, ensure_ascii=False) + ";",
+        "const cases = " + json.dumps(cases, ensure_ascii=False) + ";",
+        "const L = ['«Изображение»', '«Изображения»'];",
+        "const out = {};",
+        "for (const [k, [n, text, seen]] of Object.entries(cases)) out[k] = C.photoFacts([{ n, text, seen }], L, card).map((f) => f.attribute + ': ' + f.resolution);",
+        "out.old = C.photoFacts([{ n: 2, text: 'СКИДКА 50%', seen: '' }], ['«Изображение» (новое)', '«Изображение» (старое)'], card).length;",
+        "out.book = C.photoFacts([{ n: 1, text: '', seen: 'на обложке человек курит' }], L, { ...card, category: 'Книга' }).length;",
+        "const v = C.parseVerdicts(JSON.stringify({ photos: [{ n: 2, text: 'СКИДКА 50%', seen: 'рюкзак' }], attributes: [] }));",
+        "out.final = C.finalize(v, card, null, new Map(), [], L).list.map((x) => x.attribute + ': ' + x.decision);",
+        "console.log(JSON.stringify(out));",
+    ]), encoding="utf-8")
+    out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
+                                    check=True).stdout)
+    honest = "Общие недочеты: Информация в карточке нарушает принципы честной конкуренции"
+    assert out["qr"] == [honest] and out["sale"] == [honest] and out["wb"] == [honest]
+    assert out["swear"] == ["Изображения: На дополнительном фото есть нецензурная лексика без указания признака «18»"]
+    assert out["insta"] == ["Общие недочеты: В карточке товара присутствует символика либо упоминания организаций Meta"]
+    assert out["stub"] == ["Общие недочеты: Информация в карточке товара противоречит друг другу"]
+    assert out["smoke"] == ["Изображение: На главном фото изображена алкогольная или табачная продукция"]
+    assert out["cjk"] == ["Изображение: На главном фото товара есть иероглифы, занимающие значительную часть изображения"]
+    assert all(out[k] == [] for k in ("neg", "gift", "mark", "gun", "sign", "size", "cjk_small"))
+    assert out["old"] == 0 and out["book"] == 0
+    assert out["final"] == ["Общие недочеты: отклонить"]
+
+
 def test_spare_gemini_key_takes_over_on_rate_limit():
     """Бесплатный Gemini: основной ключ упёрся в лимит (429) — панель сразу повторяет запрос с запасным ключом
     (другой проект Google) и показывает ответ; фото берутся в размере из настройки (wc700)."""
