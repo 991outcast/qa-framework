@@ -62,8 +62,12 @@ function cardPhotos(card) {
   return photos;
 }
 
+// размер фото: EVAL_PHOTO_SIZE (как настройка панели) — ozone.ru отдаёт уменьшенную копию по адресу …/wc700/…,
+// локальные фото — из папки <папка>_<размер> (заранее уменьшенные копии), если она есть
+const PHOTO_SIZE = Number(process.env.EVAL_PHOTO_SIZE || 1000);
+
 function download(url) {
-  const wc = url.replace(/^(https:\/\/ir[^/]*\.ozone\.ru\/s3\/[^/]+\/)(?!wc\d+\/)([^/?#]+\.(?:jpe?g|png|webp))$/i, '$1wc1000/$2');
+  const wc = url.replace(/^(https:\/\/ir[^/]*\.ozone\.ru\/s3\/[^/]+\/)(?!wc\d+\/)([^/?#]+\.(?:jpe?g|png|webp))$/i, `$1wc${PHOTO_SIZE}/$2`);
   return new Promise((resolve, reject) => {
     require('https').get(wc, { family: 4, timeout: 60000 }, (res) => {
       const chunks = [];
@@ -75,7 +79,10 @@ function download(url) {
 
 async function photoData(src, baseDir) {
   const path = require('path');
-  const data = /^https?:/.test(src) ? await download(src) : fs.readFileSync(path.resolve(baseDir, src));
+  let local = path.resolve(baseDir, src);
+  const small = path.join(path.dirname(local) + '_' + PHOTO_SIZE, path.basename(local));
+  if (PHOTO_SIZE < 1000 && fs.existsSync(small)) local = small;
+  const data = /^https?:/.test(src) ? await download(src) : fs.readFileSync(local);
   const ext = (src.match(/\.(png|webp|jpe?g)(?:$|\?)/i) || [, 'jpeg'])[1].toLowerCase().replace('jpg', 'jpeg');
   return `data:image/${ext};base64,${data.toString('base64')}`;
 }
@@ -102,7 +109,12 @@ async function ask(item, book, resolutions, opts) {
     for (let attempt = 0; ; attempt++) {
       try {
         const r = await request(opts.url, JSON.stringify(body),
-          { 'Content-Type': 'application/json', Authorization: 'Bearer ' + opts.key });
+          { 'Content-Type': 'application/json', Authorization: 'Bearer ' + opts.keys[opts.keyIndex] });
+        // лимит ключа (429): есть запасной — сразу на него, иначе подождать (минутный лимит)
+        if (r.status === 429 && attempt < 3) {
+          if (opts.keys.length > 1) { opts.keyIndex = (opts.keyIndex + 1) % opts.keys.length; continue; }
+          await new Promise((ok) => setTimeout(ok, 30000)); continue;
+        }
         if (r.status < 500 || attempt >= 3) return r;
       } catch (e) {
         if (attempt >= 3) throw e;
@@ -116,7 +128,8 @@ async function ask(item, book, resolutions, opts) {
   const data = await res.json();
   const reply = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
   return { verdicts: C.finalize(C.parseVerdicts(reply), item.card, book, resolutions, facts),
-           cost: data.usage && data.usage.cost || 0 };
+           cost: data.usage && data.usage.cost || 0,
+           tokens: data.usage ? (data.usage.prompt_tokens || 0) + (data.usage.completion_tokens || 0) : 0 };
 }
 
 async function main() {
@@ -125,26 +138,30 @@ async function main() {
   const opts = {
     provider, budget: Number(process.env.EVAL_RULES_CHARS || 40000), baseDir: require('path').dirname(cardsPath),
     model: modelArg || (provider === 'gemini' ? 'gemini-3.1-flash-lite' : 'z-ai/glm-5.3-flash'),
-    key: provider === 'gemini' ? process.env.GEMINI_API_KEY : process.env.OPENROUTER_API_KEY,
+    // запасной ключ Gemini (другой проект Google — свои лимиты): GEMINI_API_KEY_2
+    keys: (provider === 'gemini' ? [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2]
+      : [process.env.OPENROUTER_API_KEY]).filter(Boolean),
+    keyIndex: 0,
     url: process.env.EVAL_API_URL || (provider === 'gemini'
       ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
       : 'https://openrouter.ai/api/v1/chat/completions'),
   };
-  if (!opts.key) throw new Error('нет ключа: переменная OPENROUTER_API_KEY или GEMINI_API_KEY');
+  if (!opts.keys.length) throw new Error('нет ключа: переменная OPENROUTER_API_KEY или GEMINI_API_KEY');
   const book = new RulesBook(JSON.parse(fs.readFileSync(rulesPath, 'utf8')));
   const resolutions = C.buildResolutions(book);
   const cards = JSON.parse(fs.readFileSync(cardsPath, 'utf8'));
   const limit = Number(process.env.EVAL_BUDGET || 0.1);
-  let spent = 0; let ok = 0; let ruleNamed = 0; const rows = [];
-  for (let i = 0; i < cards.length; i += 2) {           // по 2 карточки одновременно
+  let spent = 0; let ok = 0; let ruleNamed = 0; let tokens = 0; const rows = [];
+  const par = Number(process.env.EVAL_PAR || 2);       // карточек одновременно (Gemini бесплатно — 1)
+  for (let i = 0; i < cards.length; i += par) {
     if (spent >= limit) { console.log(`СТОП: потрачено $${spent.toFixed(4)} из $${limit}`); break; }
-    const batch = cards.slice(i, i + 2);
+    const batch = cards.slice(i, i + par);
     const answers = await Promise.all(batch.map((item) => ask(item, book, resolutions, opts)
       .catch((e) => ({ error: e.message }))));
     batch.forEach((item, k) => {
       const a = answers[k];
       if (a.error) { rows.push({ item, error: a.error }); return; }
-      spent += a.cost;
+      spent += a.cost; tokens += a.tokens;
       const s = score(item, a.verdicts);
       ok += s.ok; ruleNamed += s.ok && s.ruleNamed;
       rows.push({ item, s, verdicts: a.verdicts });
@@ -163,7 +180,8 @@ async function main() {
     }
   }
   console.log(`\nИТОГ: верно ${ok} из ${rows.length}; из них пункт правил назван — ${ruleNamed}. Модель ${opts.model}, `
-    + `потрачено $${spent.toFixed(4)}`);
+    + `потрачено $${spent.toFixed(4)}, токенов на карточку в среднем ${Math.round(tokens / Math.max(1, rows.length))}`
+    + `, фото ${PHOTO_SIZE} px`);
 }
 
 if (require.main === module) main().catch((e) => { console.error(e.message); process.exit(1); });

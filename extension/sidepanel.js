@@ -28,7 +28,8 @@ function setText(el, text, cls) {
 }
 
 async function loadSettings() {
-  settings = await chrome.storage.local.get(['rules', 'provider', 'key', 'model', 'auto', 'budget', 'photos']);
+  settings = await chrome.storage.local.get(['rules', 'provider', 'key', 'key2', 'model', 'auto', 'budget', 'photos',
+                                           'photoSize']);
   book = settings.rules ? new RulesBook(settings.rules) : null;
   resolutionsByAttr = book ? buildResolutions(book) : new Map();
   const provider = settings.provider || 'gemini';
@@ -39,6 +40,8 @@ async function loadSettings() {
   $('auto').checked = settings.auto !== false;
   $('budget').value = settings.budget || 40000;
   $('photos').value = settings.photos || 'all';
+  $('key2').value = settings.key2 || '';
+  $('photo-size').value = String(settings.photoSize || 1000);
   $('rules-info').textContent = book
     ? `Загружено: ${String(book.source).split(/[\\/]/).pop()} — ${book.sections.length} разделов`
     : 'Правила не загружены';
@@ -74,8 +77,10 @@ function cardPhotos(card) {
 }
 
 function ozonImage(url) {
-  // ir.ozone.ru/s3/<корзина>/<файл> — фото в исходном размере; wc1000 — до 1000 px, мелкие надписи читаются
-  return url.replace(/^(https:\/\/ir[^/]*\.ozone\.ru\/s3\/[^/]+\/)(?!wc\d+\/)([^/?#]+\.(?:jpe?g|png|webp))$/i, '$1wc1000/$2');
+  // ir.ozone.ru/s3/<корзина>/<файл> — фото в исходном размере; wc1000 — до 1000 px, мелкие надписи читаются;
+  // меньше (настройка «Размер фото») — меньше токенов: бесплатный Gemini не упирается в минутный лимит
+  const size = [500, 700, 1000].includes(Number(settings.photoSize)) ? Number(settings.photoSize) : 1000;
+  return url.replace(/^(https:\/\/ir[^/]*\.ozone\.ru\/s3\/[^/]+\/)(?!wc\d+\/)([^/?#]+\.(?:jpe?g|png|webp))$/i, `$1wc${size}/$2`);
 }
 
 async function toDataUrl(url) {
@@ -138,16 +143,27 @@ function renderSections(text) {
 }
 
 // ---------------- запрос к модели
+// ключи: основной и запасной (Gemini — другой проект Google, у него свои лимиты); после отказа «429»
+// запрос сразу уходит с другим ключом, и следующие — тоже с ним, пока он не упрётся в лимит
+let keyIndex = 0;
+const keysOf = (provider) => [settings.key, provider === 'gemini' ? settings.key2 : ''].filter(Boolean);
+
 async function post(body, provider) {
+  const keys = keysOf(provider);
+  if (keyIndex >= keys.length) keyIndex = 0;
   const once = () => fetch(API[provider], {
     method: 'POST', signal: controller.signal,
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + settings.key,
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + keys[keyIndex],
                ...(provider === 'openrouter' ? { 'X-Title': 'Moderation helper' } : {}) },
     body: JSON.stringify(body),
   });
   // связь рвётся («Failed to fetch», 5xx у поставщика модели) — ещё попытка через 2 с, потом ошибка в панели
   try {
     const res = await once();
+    if (res.status === 429 && keys.length > 1) {
+      keyIndex = (keyIndex + 1) % keys.length;      // лимит ключа — сразу с запасным
+      return once();
+    }
     if (res.status < 500) return res;
   } catch (e) {
     if (e.name === 'AbortError') throw e;
@@ -316,6 +332,7 @@ $('save').addEventListener('click', async () => {
   await chrome.storage.local.set({
     provider: $('provider').value, key: $('key').value.trim(), model: $('model').value.trim(),
     auto: $('auto').checked, budget: Number($('budget').value) || 40000, photos: $('photos').value,
+    key2: $('key2').value.trim(), photoSize: Number($('photo-size').value) || 1000,
   });
   $('saved').textContent = 'Сохранено';
   setTimeout(() => { $('saved').textContent = ''; }, 1500);

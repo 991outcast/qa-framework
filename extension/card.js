@@ -397,6 +397,37 @@ function finalize(verdicts, card, book, resolutions, facts) {
       }
     }
   }
+  // 2з. «не создана новая карточка» — только при повторной модерации с изменённым главным фото; иначе это не она:
+  // заглушка в объяснении — «противоречит друг другу» в «Общих недочетах», в остальном — «смотрите сами»
+  const replacedPhoto = (card.badges || []).some((b) => /повторн/i.test(b))
+    && card.attributes.some((a) => /^изображение$/i.test(a.title) && a.changed);
+  for (const v of list) {
+    if (v.decision !== 'отклонить' || !/не была создана новая карточка/i.test(v.resolution) || replacedPhoto) continue;
+    const generalAttr = card.attributes.find((a) => a.checkable && /^общие недочеты/i.test(a.title));
+    if (/заглушк|нет фото|в фотостуди|эскиз/i.test(v.reason) && generalAttr) {
+      const reason = v.reason;
+      Object.assign(v, { decision: 'принять', resolution: '', reason: `нарушение с фото — в «${generalAttr.title}»` });
+      if (!list.some((x) => x.decision === 'отклонить' && lower(x.attribute) === lower(generalAttr.title) && sameResolution(x.resolution, R_CONTRA))) {
+        const g = byTitle(generalAttr.title);
+        const add = { attribute: generalAttr.title, decision: 'отклонить', resolution: R_CONTRA, reason, section: R_CONTRA };
+        if (g && g.decision !== 'отклонить') Object.assign(g, add); else list.push(add);
+      }
+      notes.push('фотозаглушка — «противоречит друг другу» (новая карточка — только при замене фото)');
+    } else {
+      Object.assign(v, { decision: 'смотрите сами',
+                         reason: `${v.reason} — «не создана новая карточка» бывает только при повторной модерации с заменённым фото` });
+    }
+  }
+  // 2и. Instagram/Facebook без контактов — не «честная конкуренция», а упоминание организаций Meta
+  for (const v of list) {
+    if (v.decision === 'отклонить' && sameResolution(v.resolution, R_HONEST) && /instagram|инстаграм|facebook|фейсбук/i.test(v.reason)
+        && !/телефон|@|ссылк|сайт|http|www|qr|скидк|акци|wildberries|маркетплейс/i.test(v.reason)
+        && !facts.some((f) => f.enforce && f.resolution === R_HONEST)) {
+      v.resolution = R_META;
+      v.section = R_META;
+      notes.push('Instagram/Facebook — резолюция «упоминания организаций Meta»');
+    }
+  }
   // 2ж. мат на фото: у фото своя резолюция («На главном/дополнительном фото есть нецензурная лексика…»), а «На товаре
   // присутствует нецензурная лексика» в «Общих недочетах» — для текста (справочник прямо исключает из неё фото)
   for (const v of list) {

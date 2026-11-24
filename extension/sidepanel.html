@@ -49,6 +49,9 @@
     <label>Ключ API (хранится только в этом браузере)
       <input id="key" type="password" autocomplete="off" spellcheck="false">
     </label>
+    <label>Запасной ключ Gemini — из другого проекта Google (основной упёрся в лимит — запрос уйдёт с этим)
+      <input id="key2" type="password" autocomplete="off" spellcheck="false">
+    </label>
     <label>Модель
       <input id="model" type="text" spellcheck="false">
     </label>
@@ -58,6 +61,13 @@
         <option value="all">Все фото (точнее, дороже)</option>
         <option value="main8">Главное и 8 дополнительных</option>
         <option value="none">Без фото (только текст)</option>
+      </select>
+    </label>
+    <label>Размер фото
+      <select id="photo-size">
+        <option value="1000">1000 px — мелкие надписи читаются лучше</option>
+        <option value="700">700 px — меньше токенов</option>
+        <option value="500">500 px — ещё меньше токенов</option>
       </select>
     </label>
     <label>Символов правил в запросе

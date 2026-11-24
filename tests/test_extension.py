@@ -463,3 +463,89 @@ def test_replaced_main_photo_needs_a_new_card(tmp_path):
                                     check=True).stdout)
     assert out == ["Для добавления нового товара не была создана новая карточка",
                    "Изображение на главном фото не имеет никакого отношения к товару/продавцу"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")
+def test_placeholder_photo_and_instagram_get_their_own_resolutions(tmp_path):
+    """Ошибки Gemini на фото-эталоне: заглушку «Нет фото» модель отклоняет как «не создана новая карточка» (это только
+    при повторной модерации с заменённым фото) — скрипт переносит в «противоречит друг другу» у «Общих недочетов»;
+    «Мы в Instagram» без контактов — не «честная конкуренция», а упоминание организаций Meta; с телефоном —
+    честная конкуренция остаётся."""
+    def attr(title, images=()):
+        return {"title": title, "status": "", "value": "", "old": "", "checkable": True, "changed": False,
+                "active": False, "images": list(images), "video": False, "highlights": [], "reasons": []}
+    card = {"name": "Рюкзак 20 л", "seller": "Пример", "category": "Рюкзак", "group": "Галантерея", "badges": [],
+            "attributes": [attr("Изображение", ["a"]), attr("Общие недочеты")]}
+    H = "Информация в карточке нарушает принципы честной конкуренции"
+    script = tmp_path / "photo.js"
+    script.write_text(chr(10).join([
+        "const C = require(" + json.dumps(str(EXT / "card.js")) + ");",
+        "const card = " + json.dumps(card, ensure_ascii=False) + ";",
+        "const run = (v) => C.finalize({ list: [v] }, card, null, new Map(), []).list",
+        "  .filter((x) => x.decision === 'отклонить').map((x) => x.attribute + ': ' + x.resolution);",
+        "console.log(JSON.stringify({",
+        "  stub: run({ attribute: 'Изображение', decision: 'отклонить', reason: 'ФОТО 1 — заглушка «НЕТ ФОТО»',",
+        "              resolution: 'Для добавления нового товара не была создана новая карточка' }),",
+        "  insta: run({ attribute: 'Общие недочеты', decision: 'отклонить', reason: 'ФОТО 2: баннер «Мы в Instagram!»',",
+        "               resolution: " + json.dumps(H, ensure_ascii=False) + " }),",
+        "  phone: run({ attribute: 'Общие недочеты', decision: 'отклонить', reason: 'ФОТО 2: Instagram и телефон +7 900',",
+        "               resolution: " + json.dumps(H, ensure_ascii=False) + " }) }));",
+    ]), encoding="utf-8")
+    out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
+                                    check=True).stdout)
+    assert out["stub"] == ["Общие недочеты: Информация в карточке товара противоречит друг другу"]
+    assert out["insta"] == ["Общие недочеты: В карточке товара присутствует символика либо упоминания организаций Meta"]
+    assert out["phone"] == ["Общие недочеты: " + H]
+
+
+def test_spare_gemini_key_takes_over_on_rate_limit():
+    """Бесплатный Gemini: основной ключ упёрся в лимит (429) — панель сразу повторяет запрос с запасным ключом
+    (другой проект Google) и показывает ответ; фото берутся в размере из настройки (wc700)."""
+    local = {"rules": _data(), "provider": "gemini", "key": "main-key-not-real", "key2": "spare-key-not-real",
+             "auto": True, "photoSize": 700}
+    card = {"name": "Тестовая кружка", "seller": "Пример", "category": "Кружка", "group": "Посуда", "badges": [],
+            "attributes": [_attr("Бренд", "Нет бренда"),
+                           _attr("Изображение", images=["https://ir-20.ozone.ru/s3/multimedia-1-a/1000000001.jpg"])]}
+    session = {"task:1": {"type": "task", "tabId": 1, "key": "card-7", "title": card["name"], "card": card,
+                          "url": "https://moderation.ozon.ru/", "text": "", "videos": 0}}
+    keys: list[str] = []
+    photos: list[str] = []
+    answer = {"attributes": [{"name": "Бренд", "decision": "принять", "resolution": "", "reason": "", "section": ""},
+                             {"name": "Изображение", "decision": "принять", "resolution": "", "reason": "", "section": ""}],
+              "summary": "Всё принять"}
+
+    async def scenario():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(**launch_options())
+            page = await browser.new_page()
+            await page.add_init_script(CHROME_STUB % {"access": "true", "local": json.dumps(local, ensure_ascii=False),
+                                                      "session": json.dumps(session, ensure_ascii=False)})
+            cors = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}
+
+            async def image(route):
+                photos.append(route.request.url)
+                await route.fulfill(status=200, headers=cors, content_type="image/jpeg", body=b"\xff\xd8\xff\xd9")
+
+            async def model(route):
+                if route.request.method == "OPTIONS":
+                    await route.fulfill(status=204, headers=cors)
+                    return
+                key = route.request.headers.get("authorization", "")
+                keys.append(key)
+                if "main-key" in key:
+                    await route.fulfill(status=429, headers=cors, content_type="application/json",
+                                        body='{"error":{"code":429,"message":"Resource exhausted"}}')
+                    return
+                await route.fulfill(status=200, headers=cors, content_type="application/json", body=json.dumps({
+                    "choices": [{"message": {"content": json.dumps(answer, ensure_ascii=False)}}]}, ensure_ascii=False))
+
+            await page.route("https://ir-20.ozone.ru/**", image)
+            await page.route("https://generativelanguage.googleapis.com/**", model)
+            await page.goto((EXT / "sidepanel.html").as_uri())
+            await page.wait_for_function("document.querySelectorAll('.verdict').length === 2")
+            await browser.close()
+
+    run(scenario())
+    assert keys == ["Bearer main-key-not-real", "Bearer spare-key-not-real"]
+    assert photos and all("/wc700/" in u for u in photos)
