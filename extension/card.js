@@ -373,6 +373,7 @@ function finalize(verdicts, card, book, resolutions, facts) {
     if (v.decision !== 'отклонить' || !/^изображени/i.test(v.attribute)) continue;
     let resolution = '';
     if (/не имеет никакого отношения/i.test(v.resolution) && /заглушк|нет фото|в фотостуди|эскиз/i.test(v.reason)) resolution = R_CONTRA;
+    else if (/instagram|инстаграм|facebook|фейсбук/i.test(v.reason)) resolution = R_META;
     else if (/телефон|telegram|телеграм|контакт|qr|ссылк|сайт|wildberries|маркетплейс|логотип/i.test(v.reason)) resolution = R_HONEST;
     if (!resolution || !general) continue;
     const reason = v.reason;
@@ -395,6 +396,22 @@ function finalize(verdicts, card, book, resolutions, facts) {
         notes.push('отклонение бренда снято: в таблице критических брендов такого нет');
       }
     }
+  }
+  // 2ж. мат на фото: у фото своя резолюция («На главном/дополнительном фото есть нецензурная лексика…»), а «На товаре
+  // присутствует нецензурная лексика» в «Общих недочетах» — для текста (справочник прямо исключает из неё фото)
+  for (const v of list) {
+    if (v.decision !== 'отклонить' || !/^общие недочеты/i.test(v.attribute) || !/нецензурн/i.test(v.resolution)) continue;
+    if (!/фото/i.test(v.reason) || /аннотац|названи/i.test(v.reason)) continue;
+    const extra = /доп|фото\s*[2-9]|дополнит/i.test(v.reason);
+    const photoAttr = card.attributes.find((a) => a.checkable && (extra ? /^изображения$/i : /^изображение$/i).test(a.title));
+    if (!photoAttr) continue;
+    const resolution = extra ? 'На дополнительном фото есть нецензурная лексика без указания признака «18»'
+                             : 'На главном фото есть нецензурная лексика без указания признака «18»';
+    const moved = { ...v, attribute: photoAttr.title, resolution, section: resolution };
+    Object.assign(v, { decision: 'принять', resolution: '', reason: `нарушение с фото — в «${photoAttr.title}»` });
+    const target = byTitle(photoAttr.title);
+    if (target && target.decision !== 'отклонить') Object.assign(target, moved); else if (!target) list.push(moved);
+    notes.push(`мат на фото — резолюция фото у «${photoAttr.title}»`);
   }
   // 2е. главное фото «Изменено» при повторной модерации и новое фото — другой товар: по справочнику это не «не имеет
   // отношения», а «Для добавления нового товара не была создана новая карточка» (продавец заменил товар в старой)
