@@ -167,26 +167,26 @@ RUNTIME_STUB = ("window.__sent = []; window.chrome = { runtime: { sendMessage: (
                 "return Promise.resolve(); }, onMessage: { addListener: (f) => { window.__listener = f; } } } };")
 
 
-def test_content_script_reads_the_moderation_card_and_marks_the_hint():
+def test_content_script_reads_the_moderation_card_without_changing_the_page():
     """Карточка модерации (устройство — из записи 23.11): шапка, атрибуты с пометками «не проверяется» и
-    «изменено», новое и старое фото, подсвеченные Ozon слова, открытые причины отклонения, видео. Подсказка
-    панели — рамки вокруг ✓/✗ и нужной причины, видео не запускается."""
+    «изменено», новое и старое фото, подсвеченные Ozon слова, открытые причины отклонения, видео. Страница не
+    меняется ни на байт (ни стилей, ни атрибутов), подсказок от панели скрипт не ждёт, видео не запускается."""
     async def scenario():
         async with async_playwright() as p:
             browser = await p.chromium.launch(**launch_options())
             page = await browser.new_page()
             await page.goto(MODERATION.as_uri())
+            # снимок страницы без встроенных скриптов (тест подключает content.js встроенным тегом)
+            snapshot = """() => { const d = document.documentElement.cloneNode(true);
+                d.querySelectorAll('script:not([src])').forEach((s) => s.remove());
+                return d.outerHTML; }"""
+            before = await page.evaluate(snapshot)
             await page.evaluate(RUNTIME_STUB)
             await page.add_script_tag(path=str(EXT / "content.js"))
             await page.wait_for_function("window.__sent.length > 0")
             sent = await page.evaluate("window.__sent[0]")
-            await page.evaluate("""() => window.__listener({ type: 'hints', key: 'x', hints: [
-                { attribute: 'Бренд', decision: 'принять', resolution: '' },
-                { attribute: 'Изображение', decision: 'отклонить',
-                  resolution: 'На главном фото изображена алкогольная или табачная продукция' }] })""")
-            marks = await page.evaluate("""() => [...document.querySelectorAll('[data-ai-hint]')].map((el) =>
-                [el.closest('[class*="_attribute_"]').querySelector('[class*="_topLeft_"]').innerText,
-                 el.getAttribute('data-ai-hint'), el.innerText.trim()])""")
+            await page.wait_for_timeout(400)                       # повторное чтение после «тишины» на странице
+            marks = [before == await page.evaluate(snapshot), await page.evaluate("typeof window.__listener")]
             video = await page.evaluate(
                 "[document.querySelector('video').paused, document.querySelector('video').currentTime]")
             await browser.close()
@@ -205,9 +205,7 @@ def test_content_script_reads_the_moderation_card_and_marks_the_hint():
     assert image["changed"] and len(image["images"]) == 2 and len(image["reasons"]) == 2
     assert "Причины отклонения" not in image["value"]                    # список причин — отдельно
     assert len(attrs["Изображения"]["images"]) == 2 and attrs["Озон.Видео"]["video"]
-    assert sorted(m[:2] for m in marks) == [["Бренд", "approve"], ["Изображение", "decline"],
-                                             ["Изображение", "reason"]]
-    assert any("табачная продукция" in m[2] for m in marks if m[1] == "reason")
+    assert marks == [True, "undefined"]            # DOM не тронут, слушателя подсказок нет
     assert video == [True, 0]
 
 
@@ -291,7 +289,7 @@ def test_side_panel_checks_every_attribute_with_photos_and_rules():
     assert labels[0] == "ФОТО 1 — «Изображение» (новое)" and labels[1] == "ФОТО 2 — «Изображение» (старое)"
     assert all("/wc1000/" in u for u in photos) and asked[0]["response_format"] == {"type": "json_object"}
     assert rows[1].startswith("ОТКЛОНИТЬ — Изображение") and "сигарета" in rows[1]
-    assert hints[0]["key"] == "card-1" and hints[0]["hints"][1]["decision"] == "отклонить"
+    assert not hints                     # подсказки на страницу не отправляются — только в панели
 
 
 def test_firefox_build_uses_sidebar_and_the_same_code(tmp_path):
@@ -463,6 +461,43 @@ def test_replaced_main_photo_needs_a_new_card(tmp_path):
                                     check=True).stdout)
     assert out == ["Для добавления нового товара не была создана новая карточка",
                    "Изображение на главном фото не имеет никакого отношения к товару/продавцу"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")
+def test_script_rules_cover_all_sections_without_false_findings(tmp_path):
+    """Эталон по всем разделам справочника (moderation_cards_all.json, 144 вымышленные карточки) и три текстовых набора:
+    точные находки скрипта (товар не в своей категории, алкоголь, пиратство…) никогда не противоречат правильному
+    решению, а правила категорий срабатывают; точное правило заменяет похожую резолюцию модели о том же товаре."""
+    fixtures = Path(__file__).resolve().parent / "fixtures"
+    data = tmp_path / "rules.json"
+    data.write_text(json.dumps(_data(), ensure_ascii=False), encoding="utf-8")
+    script = tmp_path / "all.js"
+    script.write_text(chr(10).join([
+        "const fs = require('fs'); const ext = " + json.dumps(str(EXT)) + ";",
+        "const C = require(ext + '/card.js'); const { RulesBook } = require(ext + '/rules.js');",
+        "const book = new RulesBook(JSON.parse(fs.readFileSync(" + json.dumps(str(data)) + ", 'utf8')));",
+        "const load = (f) => JSON.parse(fs.readFileSync(" + json.dumps(str(fixtures)) + " + '/' + f, 'utf8'));",
+        "const cards = ['moderation_cards_all.json', 'moderation_cards.json', 'moderation_cards_2.json', 'moderation_cards_3.json'].flatMap(load);",
+        "const low = (s) => s.toLowerCase();",
+        "const wrong = []; let hits = 0;",
+        "for (const c of cards) for (const f of C.scanCard(c.card, book).filter((x) => x.enforce)) {",
+        "  const ok = c.expect.reject.some((e) => low(f.resolution).startsWith(low(e.resolution).slice(0, 30)) || low(e.resolution).startsWith(low(f.resolution).slice(0, 30)));",
+        "  if (ok) hits++; else wrong.push(c.id + ' ' + c.case + ' → ' + f.resolution); }",
+        "const byCase = (s) => load('moderation_cards_all.json').find((c) => c.case.startsWith(s));",
+        "const fin = (c, list) => C.finalize({ list, photos: [] }, c.card, book, new Map(), C.scanCard(c.card, book), []).list",
+        "  .filter((x) => x.decision === 'отклонить').map((x) => x.resolution);",
+        "const G = 'Общие недочеты';",
+        "console.log(JSON.stringify({ wrong, hits, total: cards.length,",
+        "  battery: fin(byCase('Автоаккумулятор'), [{ attribute: G, decision: 'отклонить', resolution: 'Пожароопасный товар в неверной категории', reason: 'аккумулятор' }]),",
+        "  wine: fin(byCase('Алкоголь'), [{ attribute: G, decision: 'отклонить', resolution: 'В карточке товара не указан признак «18»', reason: 'вино' }]),",
+        "  crossbow: fin(byCase('Арбалет'), []), keygen: fin(byCase('Пиратство'), []) }));",
+    ]), encoding="utf-8")
+    out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
+                                    check=True).stdout)
+    assert out["wrong"] == [] and out["total"] >= 200 and out["hits"] >= 40
+    rc = "Товар должен находиться в ограниченной категории или группе товаров"
+    assert out["battery"] == [rc] and out["crossbow"] == [rc]
+    assert out["wine"] == ["Товар нельзя продавать на Ozon"] and out["keygen"] == ["Товар нельзя продавать на Ozon"]
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="нет Node.js")

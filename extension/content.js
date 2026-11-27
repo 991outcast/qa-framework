@@ -1,14 +1,12 @@
 // Читает задание на странице и отдаёт его панели расширения. Ничего не нажимает, видео не запускает.
 // На moderation.ozon.ru карточка читается по атрибутам (шапка, значения, старые значения, фото, подсвеченные
 // Ozon слова, открытый список «Причины отклонения»); в окне рич-контента (rich-content.ozon.ru) — его текст и
-// фото; на остальных страницах — текст страницы целиком. Подсказка панели — рамка вокруг кнопки ✓/✗ и
-// нужной причины отклонения (атрибут data-ai-hint), больше страница не меняется.
+// фото; на остальных страницах — текст страницы целиком. Страницу не меняет: ни стилей, ни атрибутов, ни элементов —
+// подсказка видна только в боковой панели.
 (() => {
   const RICH = location.hostname === 'rich-content.ozon.ru';
   let last = '';
   let timer = null;
-  let hints = null;            // подсказка панели для текущей карточки
-  let hintCard = '';
 
   const text = (el) => (el ? (el.innerText || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim() : '');
   const q = (root, sel) => (root ? root.querySelector(sel) : null);
@@ -95,11 +93,9 @@
       const key = 'card|' + cardKey(card) + '|' + card.attributes.map((a) => a.reasons.join('/')).join('|');
       if (key !== last) {
         last = key;
-        if (hintCard && hintCard !== cardKey(card)) hints = null;    // другая карточка — старая подсказка не нужна
         send({ type: 'task', url: location.href, title: card.name || document.title, card, key: cardKey(card),
                text: text(document.body).slice(0, 20000), videos });
       }
-      applyHints();
       return;
     }
     const body = text(document.body).replace(/\n{3,}/g, '\n\n').slice(0, 20000);
@@ -109,58 +105,8 @@
     send({ type: 'task', url: location.href, title: document.title, text: body, videos });
   }
 
-  // ---------------- подсказка на карточке: рамки, без кликов
-  function ensureStyle() {
-    if (document.getElementById('ai-hint-style')) return;
-    const style = document.createElement('style');
-    style.id = 'ai-hint-style';
-    style.textContent = '[data-ai-hint="approve"]{outline:3px solid #1a7f37!important;outline-offset:2px}'
-      + '[data-ai-hint="decline"]{outline:3px solid #cf222e!important;outline-offset:2px}'
-      + '[data-ai-hint="reason"]{outline:3px solid #cf222e!important;border-radius:6px;background:rgba(207,34,46,.08)!important}';
-    document.head.append(style);
-  }
-
-  function applyHints() {
-    const root = document.querySelector('[data-testid="moderation-product-card"]');
-    document.querySelectorAll('[data-ai-hint]').forEach((el) => el.removeAttribute('data-ai-hint'));
-    if (!root || !hints) return;
-    ensureStyle();
-    for (const el of root.querySelectorAll('[class*="_attribute_"][class*="_frame_"]')) {
-      const title = norm(text(q(el, '[class*="_topLeft_"]')));
-      // у атрибута может быть несколько отклонений (несколько причин) — отметить все
-      const mine = hints.filter((h) => norm(h.attribute) === title);
-      if (!mine.length) continue;
-      const decline = mine.some((h) => h.decision === 'отклонить');
-      const button = q(el, decline ? '[class*="_declineButton_"]' : '[class*="_approveButton_"]');
-      if (button && (decline || mine.some((h) => h.decision === 'принять'))) {
-        button.setAttribute('data-ai-hint', decline ? 'decline' : 'approve');
-      }
-      for (const hint of mine.filter((h) => h.decision === 'отклонить' && h.resolution)) {
-        const want = norm(hint.resolution);
-        for (const label of el.querySelectorAll('[class*="_declinesPick_"] label')) {
-          const have = norm(text(label));
-          if (have && (have === want || have.includes(want) || want.includes(have))) label.setAttribute('data-ai-hint', 'reason');
-        }
-      }
-    }
-  }
-
-  try {
-    chrome.runtime.onMessage.addListener((message) => {
-      if (message && message.type === 'hints') {
-        hints = message.hints || null;
-        hintCard = message.key || '';
-        applyHints();
-      }
-    });
-  } catch (e) { /* не в расширении (тест) */ }
-
   // задание сменилось или догрузилось — перечитать через четверть секунды после последнего изменения
   const schedule = () => { clearTimeout(timer); timer = setTimeout(read, 250); };
-  new MutationObserver((records) => {
-    // свои рамки не считаются изменением страницы
-    if (records.every((r) => r.type === 'attributes' && r.attributeName === 'data-ai-hint')) return;
-    schedule();
-  }).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+  new MutationObserver(schedule).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
   schedule();
 })();

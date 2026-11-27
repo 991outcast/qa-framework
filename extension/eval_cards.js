@@ -137,14 +137,14 @@ async function ask(item, book, resolutions, opts) {
   }
   if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 200)}`);
   let data = await res.json();
-  let reply = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
+  let reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
   // ответ не разобрался (оборван, не JSON) — как в панели: ещё раз; молча «всё принять» нельзя
   const unreadable = (r) => { const p = C.parseVerdicts(r); return !p || !p.list.length; };
   if (unreadable(reply)) {
     const ch = data.choices && data.choices[0];
     console.error(`#${item.id}: ответ не разобран (finish_reason ${ch && ch.finish_reason}, ${reply.length} символов): ${reply.slice(0, 150)} … ${reply.slice(-150)}`);
     const again = await post();
-    if (again.ok) { data = await again.json(); reply = (data.choices && data.choices[0] && data.choices[0].message.content) || ''; }
+    if (again.ok) { data = await again.json(); reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || ''; }
     if (unreadable(reply)) throw new Error('ответ модели не разобран дважды');
   }
   return { verdicts: C.finalize(C.parseVerdicts(reply), item.card, book, resolutions, facts, photos.map((p) => p.label)),
@@ -178,6 +178,12 @@ async function main() {
     const batch = cards.slice(i, i + par);
     const answers = await Promise.all(batch.map((item) => ask(item, book, resolutions, opts)
       .catch((e) => ({ error: e.message }))));
+    // дневной лимит (429 и после повторов, и с запасным ключом) — дальше только отказы: остановиться и показать,
+    // что успели проверить
+    if (answers.some((a) => a.error && /^429/.test(a.error))) {
+      console.log(`СТОП: лимит запросов исчерпан (429) на карточке #${batch[0].id} — итог по проверенным ниже`);
+      break;
+    }
     batch.forEach((item, k) => {
       const a = answers[k];
       if (a.error) { rows.push({ item, error: a.error }); return; }

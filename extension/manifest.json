@@ -1,19 +1,41 @@
 {
   "manifest_version": 3,
   "name": "Помощник модератора",
-  "version": "2.0",
-  "description": "Читает карточку по атрибутам вместе с фото, сверяет со справочником правил и подсказывает решение по каждому атрибуту. Ничего не нажимает, видео не трогает.",
-  "permissions": ["storage", "sidePanel"],
+  "version": "2.1",
+  "description": "Читает карточку по атрибутам вместе с фото, сверяет со справочником правил и показывает решение по каждому атрибуту в боковой панели. Страницу не меняет, ничего не нажимает, видео не трогает.",
+  "permissions": [
+    "storage",
+    "sidePanel"
+  ],
   "host_permissions": [
-    "https://*.ozon.ru/*",
+    "https://moderation.ozon.ru/*",
+    "https://rich-content.ozon.ru/*",
+    "https://task.ozon.ru/*",
     "https://*.ozone.ru/*",
     "https://openrouter.ai/*",
     "https://generativelanguage.googleapis.com/*"
   ],
-  "background": { "service_worker": "background.js" },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
-    { "matches": ["https://*.ozon.ru/*"], "js": ["content.js"], "run_at": "document_idle", "all_frames": true }
+    {
+      "matches": [
+        "https://moderation.ozon.ru/*",
+        "https://rich-content.ozon.ru/*",
+        "https://task.ozon.ru/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
   ],
-  "side_panel": { "default_path": "sidepanel.html" },
-  "action": { "default_title": "Помощник модератора" }
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Помощник модератора"
+  }
 }

@@ -195,6 +195,7 @@ function explain(status, message) {
   if (status === 403) return 'Сервис не пускает запрос (403). Из России нужен VPN в браузере.';
   if (status === 429) return 'Лимит запросов исчерпан (429) — подождите минуту или смените модель.';
   if (status === 402) return 'На балансе OpenRouter нет денег (402).';
+  if (status === 'ответ') return message.charAt(0).toUpperCase() + message.slice(1) + '.';
   if (status === 503) return 'Сервис модели перегружен (503) — через несколько секунд нажмите «Спросить ИИ ещё раз».';
   return `Ошибка ${status}: ${message.slice(0, 300)}`;
 }
@@ -256,17 +257,19 @@ async function ask(t, question = '') {
     }
     if (!res.ok) throw Object.assign(new Error(await res.text()), { status: res.status });
     let data = await res.json();
-    let content = (data.choices && data.choices[0] && data.choices[0].message.content || '').trim();
+    let content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '').trim();
     // ответ по карточке не разобрался (оборван, не JSON) — ещё раз; молча показать «всё принять» нельзя
     const unreadable = (c) => { const p = parseVerdicts(c); return !p || !p.list.length; };
     if (t.card && !question && unreadable(content)) {
       const again = await post(body, provider);
       if (again.ok) {
         data = await again.json();
-        content = (data.choices && data.choices[0] && data.choices[0].message.content || '').trim();
+        content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '').trim();
       }
       if (unreadable(content)) {
-        throw Object.assign(new Error('ответ модели не разобран (оборван или не JSON) — нажмите «Спросить ИИ ещё раз»'),
+        const why = data.choices && data.choices[0] && data.choices[0].finish_reason;
+        throw Object.assign(new Error(content ? 'ответ модели не разобран (оборван или не JSON) — нажмите «Спросить ИИ ещё раз»'
+          : `модель не ответила${why && why !== 'stop' ? ` (${why})` : ''} — у Google сработал фильтр безопасности или сбой; решайте по разделам справочника ниже`),
                             { status: 'ответ' });
       }
     }
@@ -277,24 +280,13 @@ async function ask(t, question = '') {
                      cost: data.usage && typeof data.usage.cost === 'number' ? data.usage.cost : null };
     answers.set(key, result);
     const current = question ? $('question').value.trim() === question : task && keyOf(task) === key;
-    if (current) {
-      render(result);
-      if (result.verdicts && t.tabId !== undefined) sendHints(t, result.verdicts);
-    }
+    if (current) render(result);
   } catch (e) {
     if (e.name === 'AbortError') return;       // открылось следующее задание
     setText($('answer'), e.status ? explain(e.status, e.message) : 'Нет связи с сервисом модели: ' + e.message, 'error');
   } finally {
     if (inflight === key) inflight = null;
   }
-}
-
-function sendHints(t, verdicts) {
-  try {
-    chrome.tabs.sendMessage(t.tabId, { type: 'hints', key: t.key,
-      hints: verdicts.list.map(({ attribute, decision, resolution }) => ({ attribute, decision, resolution })) })
-      .catch(() => {});
-  } catch (e) { /* вкладка закрыта */ }
 }
 
 function render(r) {
