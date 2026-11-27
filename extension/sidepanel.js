@@ -6,7 +6,9 @@ const API = {
   gemini: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
   openrouter: 'https://openrouter.ai/api/v1/chat/completions',
 };
-const DEFAULT_MODEL = { gemini: 'gemini-3.1-flash-lite', openrouter: 'z-ai/glm-5.3-flash' };
+const DEFAULT_MODEL = { gemini: 'gemini-3.5-flash-lite', openrouter: 'z-ai/glm-5.3-flash' };
+// запасная модель Gemini при перегрузке (503): по очереди, кроме той, что уже спросили
+const SPARE_GEMINI = ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite'];
 const CARD_CHARS = 12000;          // текста страницы в запрос — не больше
 const MAX_PHOTOS = 60;             // даже «все фото» — не больше стольких
 
@@ -164,11 +166,19 @@ async function post(body, provider) {
       keyIndex = (keyIndex + 1) % keys.length;      // лимит ключа — сразу с запасным
       return once();
     }
-    if (res.status === 503) {                       // Gemini «high demand» — перегрузка на секунды: ещё две попытки
+    if (res.status === 503) {                       // Gemini «high demand» — перегрузка: ещё две попытки
       for (const wait of [5000, 10000]) {
         await new Promise((ok) => setTimeout(ok, wait));
         const again = await once();
         if (again.status !== 503) return again;
+      }
+      // перегрузка держится — запасная модель Gemini (свои мощности и лимиты): ответ слабее лучше, чем никакого
+      const spare = provider === 'gemini' && SPARE_GEMINI.find((m) => m !== body.model);
+      if (spare) {
+        body.model = spare;
+        const other = await once();
+        if (other.ok) other.usedModel = spare;
+        return other;
       }
       return once();
     }
@@ -245,9 +255,22 @@ async function ask(t, question = '') {
       res = await post(body, provider);
     }
     if (!res.ok) throw Object.assign(new Error(await res.text()), { status: res.status });
-    const data = await res.json();
-    const content = (data.choices && data.choices[0] && data.choices[0].message.content || '').trim();
-    const result = { text: content || 'Модель вернула пустой ответ.', model, photos: photos.length,
+    let data = await res.json();
+    let content = (data.choices && data.choices[0] && data.choices[0].message.content || '').trim();
+    // ответ по карточке не разобрался (оборван, не JSON) — ещё раз; молча показать «всё принять» нельзя
+    const unreadable = (c) => { const p = parseVerdicts(c); return !p || !p.list.length; };
+    if (t.card && !question && unreadable(content)) {
+      const again = await post(body, provider);
+      if (again.ok) {
+        data = await again.json();
+        content = (data.choices && data.choices[0] && data.choices[0].message.content || '').trim();
+      }
+      if (unreadable(content)) {
+        throw Object.assign(new Error('ответ модели не разобран (оборван или не JSON) — нажмите «Спросить ИИ ещё раз»'),
+                            { status: 'ответ' });
+      }
+    }
+    const result = { text: content || 'Модель вернула пустой ответ.', model: res.usedModel || model, photos: photos.length,
                      verdicts: t.card && !question
                        ? finalize(parseVerdicts(content), t.card, book, resolutionsByAttr, facts, photos.map((p) => p.label)) : null,
                      seconds: (performance.now() - started) / 1000,

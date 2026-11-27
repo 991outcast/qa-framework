@@ -514,6 +514,9 @@ def test_photo_inventory_becomes_exact_findings(tmp_path):
         "mark": [1, "RYUKZAKI SHOP", "водяной знак магазина"], "gun": [2, "", "человек держит автомат"],
         "sign": [2, "Курить запрещено", "табличка с перечёркнутой сигаретой"], "size": [2, "Объём 20 л, 45×30 см", "рюкзак"],
         "cjk": [1, "防水背包", "рюкзак; крупные иероглифы посередине"], "cjk_small": [1, "防水", "рюкзак; мелкие иероглифы в углу"],
+        "beer": [2, "Идеален для вечера с пивом", "инфографика"], "orig": [2, "100% ОРИГИНАЛ", "печать"],
+        "design": [2, "Оригинальный дизайн", "рюкзак"],
+        "label": [2, "Изготовитель: Пример Co., Ltd. 4 607 012 345 678", "этикетка со штрихкодом и QR-кодом"],
     }
     script = tmp_path / "inv.js"
     script.write_text(chr(10).join([
@@ -523,10 +526,26 @@ def test_photo_inventory_becomes_exact_findings(tmp_path):
         "const L = ['«Изображение»', '«Изображения»'];",
         "const out = {};",
         "for (const [k, [n, text, seen]] of Object.entries(cases)) out[k] = C.photoFacts([{ n, text, seen }], L, card).map((f) => f.attribute + ': ' + f.resolution);",
+        "out.labelEnforced = C.photoFacts([{ n: 2, text: cases.label[1], seen: cases.label[2] }], L, card).filter((f) => f.enforce).length;",
+        "out.near = C.finalize({ list: [{ attribute: 'Общие недочеты', decision: 'отклонить', resolution: 'Информация в карточке товара нарушает принципы честной конкуренции', reason: 'телефон' }], photos: [] }, card, null, new Map(), [], L).list[0].resolution;",
+        # «почти JSON» от модели: ключи без кавычек, запятая перед }, кавычки внутри строки
+        "const q = String.fromCharCode(34);",
+        "out.loose1 = (C.parseVerdicts('{' + q + 'photos' + q + ': [{n: 1, related: ' + q + 'нет' + q + ',}], ' + q + 'attributes' + q + ': [{name: ' + q + 'Бренд' + q + ', decision: ' + q + 'принять' + q + '}]}') || {}).photos;",
+        "out.loose2 = (C.parseVerdicts(['{', '  ' + q + 'attributes' + q + ': [', '    {', '      ' + q + 'name' + q + ': ' + q + 'Общие недочеты' + q + ',', '      ' + q + 'reason' + q + ': ' + q + 'Пишите в ' + q + 'WhatsApp' + q + q, '    }', '  ]', '}'].join(String.fromCharCode(10))) || { list: [] }).list.map((x) => x.reason);",
+        # реклама товара того же продавца того же типа — подсказка; чужой товар — отклонение
+        "const flag = { ...card, name: 'Флаг БПЛА 90х135' };",
+        "out.sellerAd = C.photoFacts([{ n: 2, text: 'Закажите флаг на капот, арт 3720452127', seen: 'реклама флага на капот', related: 'нет' }], L, flag).map((f) => f.enforce);",
+        "out.foreign = C.photoFacts([{ n: 2, text: 'Начните игру', seen: 'игровой компьютер', related: 'нет' }], L, flag).map((f) => f.enforce);",
         "out.old = C.photoFacts([{ n: 2, text: 'СКИДКА 50%', seen: '' }], ['«Изображение» (новое)', '«Изображение» (старое)'], card).length;",
         "out.book = C.photoFacts([{ n: 1, text: '', seen: 'на обложке человек курит' }], L, { ...card, category: 'Книга' }).length;",
         "const v = C.parseVerdicts(JSON.stringify({ photos: [{ n: 2, text: 'СКИДКА 50%', seen: 'рюкзак' }], attributes: [] }));",
         "out.final = C.finalize(v, card, null, new Map(), [], L).list.map((x) => x.attribute + ': ' + x.decision);",
+        # противоречие по доп. фото не считается; по главному — да; «не имеет отношения» за маркетплейс — честная конкуренция
+        "const K = 'Информация в карточке товара противоречит друг другу';",
+        "const fin = (list) => C.finalize({ list, photos: [] }, card, null, new Map(), [], L).list;",
+        "out.contra = fin([{ attribute: 'Общие недочеты', decision: 'отклонить', resolution: K, reason: 'в названии 16 ГБ, а на фото 2 — 32 ГБ' }])[0].decision;",
+        "out.contraMain = fin([{ attribute: 'Общие недочеты', decision: 'отклонить', resolution: K, reason: 'на главном фото перчатки, а в названии рюкзак' }])[0].decision;",
+        "out.market = fin([{ attribute: 'Изображения', decision: 'отклонить', resolution: 'Изображение на дополнительном фото не имеет никакого отношения к товару/продавцу', reason: 'на фото 2 «Есть на Яндекс Маркете»' }]).filter((x) => x.decision === 'отклонить').map((x) => x.attribute + ': ' + x.resolution);",
         "console.log(JSON.stringify(out));",
     ]), encoding="utf-8")
     out = json.loads(subprocess.run(["node", str(script)], capture_output=True, text=True, encoding="utf-8",
@@ -538,9 +557,62 @@ def test_photo_inventory_becomes_exact_findings(tmp_path):
     assert out["stub"] == ["Общие недочеты: Информация в карточке товара противоречит друг другу"]
     assert out["smoke"] == ["Изображение: На главном фото изображена алкогольная или табачная продукция"]
     assert out["cjk"] == ["Изображение: На главном фото товара есть иероглифы, занимающие значительную часть изображения"]
-    assert all(out[k] == [] for k in ("neg", "gift", "mark", "gun", "sign", "size", "cjk_small"))
+    assert out["beer"] == ["Изображения: На дополнительном фото изображена алкогольная или табачная продукция"]
+    assert out["orig"] == [honest]
+    assert all(out[k] == [] for k in ("neg", "gift", "mark", "gun", "sign", "size", "cjk_small", "design"))
+    assert out["contra"] == "принять" and out["contraMain"] == "отклонить" and out["market"] == [honest]
+    assert out["label"] == [honest] and out["labelEnforced"] == 0      # QR на этикетке — подсказка, не отклонение
+    assert out["near"] == "Информация в карточке нарушает принципы честной конкуренции"
+    assert out["loose1"][0]["related"] == "нет" and out["loose2"] == ['Пишите в "WhatsApp"']
+    assert out["sellerAd"] == [False] and out["foreign"] == [True]
     assert out["old"] == 0 and out["book"] == 0
     assert out["final"] == ["Общие недочеты: отклонить"]
+
+
+def test_overloaded_gemini_falls_back_to_spare_model():
+    """503 «high demand» у Gemini: панель повторяет запрос через 5 и 10 с, перегрузка держится — спрашивает запасную
+    модель (по умолчанию модель — gemini-3.5-flash-lite, запасная — gemini-3.1-flash-lite) и показывает её ответ."""
+    local = {"rules": _data(), "provider": "gemini", "key": "main-key-not-real", "auto": True, "photos": "none"}
+    card = {"name": "Тестовая кружка", "seller": "Пример", "category": "Кружка", "group": "Посуда", "badges": [],
+            "attributes": [_attr("Бренд", "Нет бренда")]}
+    session = {"task:1": {"type": "task", "tabId": 1, "key": "card-8", "title": card["name"], "card": card,
+                          "url": "https://moderation.ozon.ru/", "text": "", "videos": 0}}
+    models: list[str] = []
+    answer = {"attributes": [{"name": "Бренд", "decision": "принять", "resolution": "", "reason": "", "section": ""}],
+              "summary": "Всё принять"}
+
+    async def scenario():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(**launch_options())
+            page = await browser.new_page()
+            await page.add_init_script(CHROME_STUB % {"access": "true", "local": json.dumps(local, ensure_ascii=False),
+                                                      "session": json.dumps(session, ensure_ascii=False)})
+            cors = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}
+
+            async def model(route):
+                if route.request.method == "OPTIONS":
+                    await route.fulfill(status=204, headers=cors)
+                    return
+                name = json.loads(route.request.post_data)["model"]
+                models.append(name)
+                if name == "gemini-3.5-flash-lite":
+                    await route.fulfill(status=503, headers=cors, content_type="application/json",
+                                        body='{"error":{"code":503,"message":"high demand","status":"UNAVAILABLE"}}')
+                    return
+                await route.fulfill(status=200, headers=cors, content_type="application/json", body=json.dumps({
+                    "choices": [{"message": {"content": json.dumps(answer, ensure_ascii=False)}}]}, ensure_ascii=False))
+
+            await page.route("https://generativelanguage.googleapis.com/**", model)
+            await page.goto((EXT / "sidepanel.html").as_uri())
+            await page.wait_for_function("document.querySelectorAll('.verdict').length === 1", timeout=40000)
+            meta = await page.inner_text("#answer-meta")
+            await browser.close()
+            return meta
+
+    meta = run(scenario())
+    assert models == ["gemini-3.5-flash-lite"] * 3 + ["gemini-3.1-flash-lite"]
+    assert "gemini-3.1-flash-lite" in meta
 
 
 def test_spare_gemini_key_takes_over_on_rate_limit():

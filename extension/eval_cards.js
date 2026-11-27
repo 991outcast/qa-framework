@@ -115,9 +115,12 @@ async function ask(item, book, resolutions, opts) {
           if (opts.keys.length > 1) { opts.keyIndex = (opts.keyIndex + 1) % opts.keys.length; continue; }
           await new Promise((ok) => setTimeout(ok, 30000)); continue;
         }
+        // 503 «high demand» у Gemini — как в панели: ещё две попытки через 5 и 10 с, потом запасная модель (ниже)
+        if (r.status === 503) {
+          if (attempt >= 2) return r;
+          await new Promise((ok) => setTimeout(ok, 5000 * (attempt + 1))); continue;
+        }
         if (r.status < 500 || attempt >= 3) return r;
-        // 503 «high demand» у Gemini — перегрузка на минуты: ждать дольше (15, 30, 45 с)
-        if (r.status === 503) { await new Promise((ok) => setTimeout(ok, 15000 * (attempt + 1))); continue; }
       } catch (e) {
         if (attempt >= 3) throw e;
       }
@@ -126,11 +129,26 @@ async function ask(item, book, resolutions, opts) {
   };
   let res = await post();
   if (res.status === 400 && body.reasoning) { delete body.reasoning; res = await post(); }
+  let spare = '';
+  if (res.status === 503 && opts.provider === 'gemini') {      // перегрузка держится — запасная модель, как в панели
+    spare = ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite'].find((m) => m !== body.model);
+    body.model = spare;
+    res = await post();
+  }
   if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 200)}`);
-  const data = await res.json();
-  const reply = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
+  let data = await res.json();
+  let reply = (data.choices && data.choices[0] && data.choices[0].message.content) || '';
+  // ответ не разобрался (оборван, не JSON) — как в панели: ещё раз; молча «всё принять» нельзя
+  const unreadable = (r) => { const p = C.parseVerdicts(r); return !p || !p.list.length; };
+  if (unreadable(reply)) {
+    const ch = data.choices && data.choices[0];
+    console.error(`#${item.id}: ответ не разобран (finish_reason ${ch && ch.finish_reason}, ${reply.length} символов): ${reply.slice(0, 150)} … ${reply.slice(-150)}`);
+    const again = await post();
+    if (again.ok) { data = await again.json(); reply = (data.choices && data.choices[0] && data.choices[0].message.content) || ''; }
+    if (unreadable(reply)) throw new Error('ответ модели не разобран дважды');
+  }
   return { verdicts: C.finalize(C.parseVerdicts(reply), item.card, book, resolutions, facts, photos.map((p) => p.label)),
-           cost: data.usage && data.usage.cost || 0,
+           spare, cost: data.usage && data.usage.cost || 0,
            tokens: data.usage ? (data.usage.prompt_tokens || 0) + (data.usage.completion_tokens || 0) : 0 };
 }
 
@@ -139,7 +157,7 @@ async function main() {
   const provider = process.env.EVAL_PROVIDER || 'openrouter';
   const opts = {
     provider, budget: Number(process.env.EVAL_RULES_CHARS || 40000), baseDir: require('path').dirname(cardsPath),
-    model: modelArg || (provider === 'gemini' ? 'gemini-3.1-flash-lite' : 'z-ai/glm-5.3-flash'),
+    model: modelArg || (provider === 'gemini' ? 'gemini-3.5-flash-lite' : 'z-ai/glm-5.3-flash'),
     // запасной ключ Gemini (другой проект Google — свои лимиты): GEMINI_API_KEY_2
     keys: (provider === 'gemini' ? [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2]
       : [process.env.OPENROUTER_API_KEY]).filter(Boolean),
@@ -166,7 +184,7 @@ async function main() {
       spent += a.cost; tokens += a.tokens;
       const s = score(item, a.verdicts);
       ok += s.ok; ruleNamed += s.ok && s.ruleNamed;
-      rows.push({ item, s, verdicts: a.verdicts });
+      rows.push({ item, s, verdicts: a.verdicts, spare: a.spare });
     });
   }
   for (const r of rows) {
@@ -174,7 +192,7 @@ async function main() {
     if (r.error) { console.log(`#${r.item.id} ОШИБКА ${r.error}`); continue; }
     const got = (r.verdicts ? r.verdicts.list : []).filter((v) => v.decision === 'отклонить')
       .map((v) => `${v.attribute}: ${v.resolution}`).join('; ') || 'всё принять';
-    console.log(`#${r.item.id} ${r.s.ok ? 'ВЕРНО ' : 'ОШИБКА'} ${r.item.case}\n    эталон: ${exp}\n    модель: ${got}`);
+    console.log(`#${r.item.id} ${r.s.ok ? 'ВЕРНО ' : 'ОШИБКА'} ${r.item.case}${r.spare ? ` (503 — ответила запасная ${r.spare})` : ''}\n    эталон: ${exp}\n    модель: ${got}`);
     if (!r.s.ok && r.verdicts) {          // почему модель так решила
       for (const v of r.verdicts.list.filter((x) => x.decision === 'отклонить' || x.reason)) {
         console.log(`      ${v.attribute} → ${v.decision}: ${String(v.reason).slice(0, 160)}`);
