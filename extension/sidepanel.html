@@ -52,10 +52,17 @@
     <label>Запасной ключ Gemini — из другого проекта Google (основной упёрся в лимит — запрос уйдёт с этим)
       <input id="key2" type="password" autocomplete="off" spellcheck="false">
     </label>
+    <label>Второй запасной ключ Gemini — из третьего проекта Google (необязательно)
+      <input id="key3" type="password" autocomplete="off" spellcheck="false">
+    </label>
     <label>Модель
       <input id="model" type="text" spellcheck="false">
     </label>
     <label class="row"><input id="auto" type="checkbox"> Спрашивать ИИ сразу, как открылось задание</label>
+    <label class="row"><input id="strong" type="checkbox"> Второе мнение сильной модели, если основная сомневается (Gemini)</label>
+    <label>Сильная модель
+      <input id="strong-model" type="text" spellcheck="false">
+    </label>
     <label>Фото карточки — модели
       <select id="photos">
         <option value="all">Все фото (точнее, дороже)</option>

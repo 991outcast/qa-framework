@@ -135,21 +135,50 @@ async function ask(item, book, resolutions, opts) {
     body.model = spare;
     res = await post();
   }
-  if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 200)}`);
-  let data = await res.json();
-  let reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-  // ответ не разобрался (оборван, не JSON) — как в панели: ещё раз; молча «всё принять» нельзя
-  const unreadable = (r) => { const p = C.parseVerdicts(r); return !p || !p.list.length; };
-  if (unreadable(reply)) {
-    const ch = data.choices && data.choices[0];
-    console.error(`#${item.id}: ответ не разобран (finish_reason ${ch && ch.finish_reason}, ${reply.length} символов): ${reply.slice(0, 150)} … ${reply.slice(-150)}`);
-    const again = await post();
-    if (again.ok) { data = await again.json(); reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || ''; }
-    if (unreadable(reply)) throw new Error('ответ модели не разобран дважды');
+  if (res.status === 429) throw new Error(`429 ${(await res.text()).slice(0, 200)}`);   // лимит — прогон остановится
+  const readOf = (d) => (d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '';
+  const parsedOf = (r) => { const p = C.parseVerdicts(r); return p && p.list.length ? p : null; };
+  const usage = { cost: 0, tokens: 0 };
+  const count = (d) => { if (d && d.usage) { usage.cost += d.usage.cost || 0; usage.tokens += (d.usage.prompt_tokens || 0) + (d.usage.completion_tokens || 0); } };
+  let reply = '';
+  if (res.ok) {
+    let data = await res.json(); count(data); reply = readOf(data);
+    // ответ не разобрался (оборван, не JSON) — как в панели: ещё раз; фильтр Google («PROHIBITED_CONTENT») не повторяем
+    if (!parsedOf(reply)) {
+      const ch = data.choices && data.choices[0];
+      console.error(`#${item.id}: ответ не разобран (finish_reason ${ch && ch.finish_reason}, ${reply.length} символов): ${reply.slice(0, 150)} … ${reply.slice(-150)}`);
+      if (!/filter|safety|prohibited/i.test(String(ch && ch.finish_reason))) {
+        const again = await post();
+        if (again.ok) { data = await again.json(); count(data); reply = readOf(data); }
+      }
+    }
   }
-  return { verdicts: C.finalize(C.parseVerdicts(reply), item.card, book, resolutions, facts, photos.map((p) => p.label)),
-           spare, cost: data.usage && data.usage.cost || 0,
-           tokens: data.usage ? (data.usage.prompt_tokens || 0) + (data.usage.completion_tokens || 0) : 0 };
+  const labels = photos.map((p) => p.label);
+  let parsed = parsedOf(reply);
+  let final = parsed ? C.finalize(parsed, item.card, book, resolutions, facts, labels) : null;
+  // второе мнение (EVAL_STRONG, как в панели): основная модель сомневается по фото, ответила «смотрите сами» не по
+  // видео или не ответила — тот же запрос сильной модели, её решение (после скрипта) — итоговое
+  let strong = ''; let why = [];
+  if (opts.strong) {
+    why = C.secondOpinionReasons(parsed, final, item.card);
+    if (why.length) {
+      const mainModel = body.model;
+      body.model = opts.strong;
+      const r2 = await post();
+      if (r2.ok) {
+        const d2 = await r2.json(); count(d2);
+        const p2 = parsedOf(readOf(d2));
+        if (p2) { parsed = p2; final = C.finalize(p2, item.card, book, resolutions, facts, labels); strong = opts.strong; }
+      } else {
+        strong = `${opts.strong} не ответила (${r2.status})`;
+      }
+      body.model = mainModel;
+    }
+  }
+  // не ответил никто — только находки скрипта, с пометкой (молча «всё принять» не бывает)
+  const scriptOnly = !final;
+  if (!final) final = C.finalize({ list: [], photos: [] }, item.card, book, resolutions, facts, labels);
+  return { verdicts: final, spare, strong, why, scriptOnly, cost: usage.cost, tokens: usage.tokens };
 }
 
 async function main() {
@@ -158,10 +187,11 @@ async function main() {
   const opts = {
     provider, budget: Number(process.env.EVAL_RULES_CHARS || 40000), baseDir: require('path').dirname(cardsPath),
     model: modelArg || (provider === 'gemini' ? 'gemini-3.5-flash-lite' : 'z-ai/glm-5.3-flash'),
-    // запасной ключ Gemini (другой проект Google — свои лимиты): GEMINI_API_KEY_2
-    keys: (provider === 'gemini' ? [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2]
+    // запасные ключи Gemini (другие проекты Google — свои лимиты): GEMINI_API_KEY_2, GEMINI_API_KEY_3
+    keys: (provider === 'gemini' ? [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3]
       : [process.env.OPENROUTER_API_KEY]).filter(Boolean),
     keyIndex: 0,
+    strong: process.env.EVAL_STRONG || '',     // сильная модель для второго мнения (gemini-3.8-flash)
     url: process.env.EVAL_API_URL || (provider === 'gemini'
       ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
       : 'https://openrouter.ai/api/v1/chat/completions'),
@@ -190,7 +220,7 @@ async function main() {
       spent += a.cost; tokens += a.tokens;
       const s = score(item, a.verdicts);
       ok += s.ok; ruleNamed += s.ok && s.ruleNamed;
-      rows.push({ item, s, verdicts: a.verdicts, spare: a.spare });
+      rows.push({ item, s, verdicts: a.verdicts, spare: a.spare, strong: a.strong, why: a.why, scriptOnly: a.scriptOnly });
     });
   }
   for (const r of rows) {
@@ -198,7 +228,7 @@ async function main() {
     if (r.error) { console.log(`#${r.item.id} ОШИБКА ${r.error}`); continue; }
     const got = (r.verdicts ? r.verdicts.list : []).filter((v) => v.decision === 'отклонить')
       .map((v) => `${v.attribute}: ${v.resolution}`).join('; ') || 'всё принять';
-    console.log(`#${r.item.id} ${r.s.ok ? 'ВЕРНО ' : 'ОШИБКА'} ${r.item.case}${r.spare ? ` (503 — ответила запасная ${r.spare})` : ''}\n    эталон: ${exp}\n    модель: ${got}`);
+    console.log(`#${r.item.id} ${r.s.ok ? 'ВЕРНО ' : 'ОШИБКА'} ${r.item.case}${r.spare ? ` (503 — ответила запасная ${r.spare})` : ''}${r.strong ? ` [второе мнение ${r.strong}: ${(r.why || []).join('; ').slice(0, 120)}]` : ''}${r.scriptOnly ? ' [модель не ответила — только скрипт]' : ''}\n    эталон: ${exp}\n    модель: ${got}`);
     if (!r.s.ok && r.verdicts) {          // почему модель так решила
       for (const v of r.verdicts.list.filter((x) => x.decision === 'отклонить' || x.reason)) {
         console.log(`      ${v.attribute} → ${v.decision}: ${String(v.reason).slice(0, 160)}`);
@@ -210,7 +240,10 @@ async function main() {
   }
   console.log(`\nИТОГ: верно ${ok} из ${rows.length}; из них пункт правил назван — ${ruleNamed}. Модель ${opts.model}, `
     + `потрачено $${spent.toFixed(4)}, токенов на карточку в среднем ${Math.round(tokens / Math.max(1, rows.length))}`
-    + `, фото ${PHOTO_SIZE} px`);
+    + `, фото ${PHOTO_SIZE} px`
+    + (opts.strong ? `; второе мнение ${opts.strong} — ${rows.filter((r) => r.strong && !/не ответила/.test(r.strong)).length} раз`
+      + ` (не ответила — ${rows.filter((r) => /не ответила/.test(r.strong || '')).length})` : '')
+    + `; только скрипт (модель промолчала) — ${rows.filter((r) => r.scriptOnly).length}`);
 }
 
 if (require.main === module) main().catch((e) => { console.error(e.message); process.exit(1); });

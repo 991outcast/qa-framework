@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import shutil
 import subprocess
@@ -552,6 +553,7 @@ def test_photo_inventory_becomes_exact_findings(tmp_path):
         "beer": [2, "Идеален для вечера с пивом", "инфографика"], "orig": [2, "100% ОРИГИНАЛ", "печать"],
         "design": [2, "Оригинальный дизайн", "рюкзак"],
         "label": [2, "Изготовитель: Пример Co., Ltd. 4 607 012 345 678", "этикетка со штрихкодом и QR-кодом"],
+        "brandqr": [1, "FQRAEGO Косметичка не входит в комплект", "карандаши для губ"],
     }
     script = tmp_path / "inv.js"
     script.write_text(chr(10).join([
@@ -594,7 +596,7 @@ def test_photo_inventory_becomes_exact_findings(tmp_path):
     assert out["cjk"] == ["Изображение: На главном фото товара есть иероглифы, занимающие значительную часть изображения"]
     assert out["beer"] == ["Изображения: На дополнительном фото изображена алкогольная или табачная продукция"]
     assert out["orig"] == [honest]
-    assert all(out[k] == [] for k in ("neg", "gift", "mark", "gun", "sign", "size", "cjk_small", "design"))
+    assert all(out[k] == [] for k in ("neg", "gift", "mark", "gun", "sign", "size", "cjk_small", "design", "brandqr"))
     assert out["contra"] == "принять" and out["contraMain"] == "отклонить" and out["market"] == [honest]
     assert out["label"] == [honest] and out["labelEnforced"] == 0      # QR на этикетке — подсказка, не отклонение
     assert out["near"] == "Информация в карточке нарушает принципы честной конкуренции"
@@ -602,6 +604,111 @@ def test_photo_inventory_becomes_exact_findings(tmp_path):
     assert out["sellerAd"] == [False] and out["foreign"] == [True]
     assert out["old"] == 0 and out["book"] == 0
     assert out["final"] == ["Общие недочеты: отклонить"]
+
+
+def test_no_model_request_on_moderation_page_without_card():
+    """Список товаров, «Список пуст», обновление страницы на moderation.ozon.ru — не карточка: панель модель сама не
+    спрашивает (запросы впустую тратили лимит), показывает «Карточка не открыта»."""
+    local = {"rules": _data(), "provider": "gemini", "key": "main-key-not-real", "auto": True}
+    session = {"task:1": {"type": "task", "tabId": 1, "title": "Ручная модерация", "url": "https://moderation.ozon.ru/",
+                          "text": "Список товаров\nСписок пуст\nОбновите страницу, чтобы назначились товары", "videos": 0}}
+    asked: list[str] = []
+
+    async def scenario():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(**launch_options())
+            page = await browser.new_page()
+            await page.add_init_script(CHROME_STUB % {"access": "true", "local": json.dumps(local, ensure_ascii=False),
+                                                      "session": json.dumps(session, ensure_ascii=False)})
+
+            async def model(route):
+                asked.append(route.request.method)
+                await route.abort()
+
+            await page.route("https://generativelanguage.googleapis.com/**", model)
+            await page.goto((EXT / "sidepanel.html").as_uri())
+            await page.wait_for_function("document.querySelector('#answer').textContent.includes('Карточка не открыта')")
+            await page.wait_for_timeout(1500)          # автоспрос срабатывает через 0,6 с — его не должно быть
+            await browser.close()
+
+    run(scenario())
+    assert asked == []
+
+
+def test_strong_model_takes_over_when_main_model_doubts():
+    """Основная модель сомневается по фото (doubt) — панель сама спрашивает сильную модель (gemini-3.8-flash), её
+    решение — итоговое, в заметке: почему позвали и что изменилось. Обе молчат (фильтр Google, лимит у сильной) —
+    находки скрипта с предупреждением «МОДЕЛЬ НЕ ОТВЕТИЛА», а не пустое «всё принять»."""
+    card = {"name": "Тестовая кружка", "seller": "Пример", "category": "Кружка", "group": "Посуда", "badges": [],
+            "attributes": [_attr("Бренд", "Нет бренда"), _attr("Общие недочеты", "Категория: Кружка")]}
+    accept = {"photos": [{"n": 1, "text": "", "seen": "кружка", "related": "да", "hieroglyphs": "нет",
+                          "doubt": "мелкий текст внизу фото не читается"}],
+              "attributes": [{"name": "Бренд", "decision": "принять"}, {"name": "Общие недочеты", "decision": "принять"}]}
+    reject = {"photos": [{"n": 1, "text": "Звоните +7 900 111-22-33", "seen": "кружка", "related": "да",
+                          "hieroglyphs": "нет", "doubt": "нет"}],
+              "attributes": [{"name": "Бренд", "decision": "принять"},
+                             {"name": "Общие недочеты", "decision": "отклонить",
+                              "resolution": "Информация в карточке нарушает принципы честной конкуренции",
+                              "reason": "на фото 1 телефон"}]}
+
+    def scenario(mode):
+        local = {"rules": _data(), "provider": "gemini", "key": "main-key-not-real", "auto": True, "photos": "none",
+                 "strongTimeout": 1500}
+        session = {"task:1": {"type": "task", "tabId": 1, "key": "card-9" + mode, "title": card["name"], "card": card,
+                              "url": "https://moderation.ozon.ru/", "text": "", "videos": 0}}
+        models: list[str] = []
+
+        async def go():
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(**launch_options())
+                page = await browser.new_page()
+                await page.add_init_script(CHROME_STUB % {"access": "true", "local": json.dumps(local, ensure_ascii=False),
+                                                          "session": json.dumps(session, ensure_ascii=False)})
+                cors = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*",
+                        "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}
+
+                async def model(route):
+                    if route.request.method == "OPTIONS":
+                        await route.fulfill(status=204, headers=cors)
+                        return
+                    name = json.loads(route.request.post_data)["model"]
+                    models.append(name)
+                    if mode == "hang" and name == "gemini-3.8-flash":   # сильная модель зависла
+                        await asyncio.sleep(4)
+                        try:
+                            await route.fulfill(status=200, headers=cors, content_type="application/json", body="{}")
+                        except Exception:
+                            pass
+                        return
+                    if mode == "silent" and name == "gemini-3.8-flash":
+                        await route.fulfill(status=429, headers=cors, content_type="application/json",
+                                            body='{"error":{"code":429,"message":"quota"}}')
+                        return
+                    if mode == "silent":
+                        msg = {"choices": [{"message": {"content": ""}, "finish_reason": "content_filter: PROHIBITED_CONTENT"}]}
+                    else:
+                        msg = {"choices": [{"message": {"content": json.dumps(
+                            reject if name == "gemini-3.8-flash" else accept, ensure_ascii=False)}}]}
+                    await route.fulfill(status=200, headers=cors, content_type="application/json",
+                                        body=json.dumps(msg, ensure_ascii=False))
+
+                await page.route("https://generativelanguage.googleapis.com/**", model)
+                await page.goto((EXT / "sidepanel.html").as_uri())
+                await page.wait_for_function("document.querySelector('#answer-meta').textContent.length > 0", timeout=30000)
+                text = await page.inner_text("body")
+                await browser.close()
+                return models, text
+
+        return run(go())
+
+    models, text = scenario("doubt")
+    assert models == ["gemini-3.5-flash-lite", "gemini-3.8-flash"]
+    assert "Второе мнение gemini-3.8-flash" in text and "мелкий текст" in text and "честной конкуренции" in text
+    models, text = scenario("silent")
+    assert models[0] == "gemini-3.5-flash-lite" and "gemini-3.8-flash" in models
+    assert "МОДЕЛЬ НЕ ОТВЕТИЛА" in text
+    models, text = scenario("hang")               # не ждать вечно: через срок — решение основной модели с пометкой
+    assert models == ["gemini-3.5-flash-lite", "gemini-3.8-flash"] and "не ответила за 1.5 с" in text
 
 
 def test_overloaded_gemini_falls_back_to_spare_model():
@@ -652,9 +759,9 @@ def test_overloaded_gemini_falls_back_to_spare_model():
 
 def test_spare_gemini_key_takes_over_on_rate_limit():
     """Бесплатный Gemini: основной ключ упёрся в лимит (429) — панель сразу повторяет запрос с запасным ключом
-    (другой проект Google) и показывает ответ; фото берутся в размере из настройки (wc700)."""
+    (другой проект Google), тот тоже в лимите — со вторым запасным, и показывает ответ; фото — в размере из настройки."""
     local = {"rules": _data(), "provider": "gemini", "key": "main-key-not-real", "key2": "spare-key-not-real",
-             "auto": True, "photoSize": 700}
+             "key3": "third-key-not-real", "auto": True, "photoSize": 700}
     card = {"name": "Тестовая кружка", "seller": "Пример", "category": "Кружка", "group": "Посуда", "badges": [],
             "attributes": [_attr("Бренд", "Нет бренда"),
                            _attr("Изображение", images=["https://ir-20.ozone.ru/s3/multimedia-1-a/1000000001.jpg"])]}
@@ -685,7 +792,7 @@ def test_spare_gemini_key_takes_over_on_rate_limit():
                     return
                 key = route.request.headers.get("authorization", "")
                 keys.append(key)
-                if "main-key" in key:
+                if "main-key" in key or "spare-key" in key:
                     await route.fulfill(status=429, headers=cors, content_type="application/json",
                                         body='{"error":{"code":429,"message":"Resource exhausted"}}')
                     return
@@ -699,5 +806,5 @@ def test_spare_gemini_key_takes_over_on_rate_limit():
             await browser.close()
 
     run(scenario())
-    assert keys == ["Bearer main-key-not-real", "Bearer spare-key-not-real"]
+    assert keys == ["Bearer main-key-not-real", "Bearer spare-key-not-real", "Bearer third-key-not-real"]
     assert photos and all("/wc700/" in u for u in photos)
